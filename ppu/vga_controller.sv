@@ -27,8 +27,8 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
     
 	 logic [15:0] addr;
 	 logic [7:0] data_out, pixel;
-    RAM VRAM(.clk(Clk), .data_out(data_out), .addr(addr), .WE(0));
-	 assign pixel = (data_out & (1 << hc[2:0]));
+   // RAM VRAM(.clk(Clk), .data_out(data_out), .addr(addr), .WE(0));
+	 //assign pixel = (data_out & (1 << hc[2:0]));
 	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
     always_ff @ (posedge Clk or posedge Reset )
     begin 
