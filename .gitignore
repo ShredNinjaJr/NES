@@ -3,3 +3,8 @@
 *.svo
 *.sdo
 *.log
+
+# Folders that are not requried
+db
+output_files
+incremental_db
