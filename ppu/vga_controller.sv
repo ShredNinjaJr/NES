@@ -24,11 +24,7 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 
     //Disable Composite Sync
     assign sync = 1'b0;
-    
-	 logic [15:0] addr;
-	 logic [7:0] data_out, pixel;
-   // RAM VRAM(.clk(Clk), .data_out(data_out), .addr(addr), .WE(0));
-	 //assign pixel = (data_out & (1 << hc[2:0]));
+
 	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
     always_ff @ (posedge Clk or posedge Reset )
     begin 
@@ -45,7 +41,6 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 			begin 
 				 hc <= 10'b0000000000;
 				 vc <= 10'b0000000000;
-				 addr <= 0; 
 			end
 				
 		  else 
@@ -53,9 +48,7 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 			  begin 
 					hc <= 10'b0000000000;
 					if ( vc == vlines )   //if vc has reached end of line count
-					begin
-						addr <= 0; 
-					
+					begin					
 						 vc <= 10'b0000000000;
 					end
 					else 
@@ -64,7 +57,6 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 			 else
 			 begin
 				  hc <= (hc + 1'b1);  //no statement about vc, implied vc <= vc;
-				  addr = ((vc >> 3) << 8) + ((hc >> 3)<<4) + (vc[2:0]);
 			 end
 	 end 
    
@@ -108,13 +100,6 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 	
     always_comb
     begin:RGB_Display
-        if ( pixel != 8'b0) 
-        begin 
-            VGA_R = 8'hff;
-            VGA_G = 8'hff;
-            VGA_B = 8'hff;
-        end       
-        else 
         begin 
             VGA_R = 8'h00; 
             VGA_G = 8'h00;

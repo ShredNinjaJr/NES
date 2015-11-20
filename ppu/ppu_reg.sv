@@ -71,6 +71,12 @@ begin
 			end
 			
 			PPUADDR:
+			begin
+			end
+			
+			PPUDATA:
+			begin
+			end
 			
 			default: begin
 				cpu_data_out <= reg_array[reg_addr];

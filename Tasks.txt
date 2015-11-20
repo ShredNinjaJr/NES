@@ -1,0 +1,7 @@
+Tasks to complete:
+
+Fill in placeholders in ppu_reg.sv
+
+Add support to cart.sv to read in the header to assign nametables and such
+
+Divide cart.sv into PRGROM and CHR ROM
