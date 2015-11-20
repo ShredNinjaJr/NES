@@ -6,19 +6,19 @@ module VRAM_mapper
 (
 	input WE,
 	input [15:0] addr,
-	input [7:0] ROM_out, CIRAM_out, palette_out,
+	input [7:0] CHR_ROM_out, CIRAM_out, palette_out,
 	output logic[7:0] data_out,
 	output logic CIRAM_WE, palette_WE,
 	
 	output logic [10:0] CIRAM_addr,
-	output logic [15:0] ROM_addr
+	output logic [12:0] CHR_ROM_addr
 );
 
 
 
 
 
-assign ROM_addr = addr[13:0] + 16'h8000;
+assign CHR_ROM_addr = addr[12:0];
 
 /* assuming vertical mirroring,  */
 wire V_MIRRORING = 1;
@@ -33,7 +33,7 @@ begin
 	palette_WE = 0;
 	
 	 if(addr[13:0] < 14'h2000)	/* It is inside the cartridge */
-				data_out = ROM_out;
+				data_out = CHR_ROM_out;
 
 	
 	 else if(addr[13:0] >= 14'h2000 && addr[13:0] < 14'h3F00)
