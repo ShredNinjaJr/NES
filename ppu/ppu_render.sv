@@ -84,19 +84,19 @@ begin
 			
 			unique case({y_idx[0], current_idx[1]})
 			
-			2'b00: begin
+			2'b11: begin
 				next_AT_high <= VRAM_data_in[7];
 				next_AT_low <= VRAM_data_in[6];
 			end
-			2'b01: begin
+			2'b10: begin
 				next_AT_high <= VRAM_data_in[5];
 				next_AT_low <= VRAM_data_in[4];
 			end
-			2'b10: begin
+			2'b01: begin
 				next_AT_high <= VRAM_data_in[3];
 				next_AT_low <= VRAM_data_in[2];
 			end
-			2'b11: begin
+			2'b00: begin
 				next_AT_high <= VRAM_data_in[1];
 				next_AT_low <= VRAM_data_in[0];
 			end
