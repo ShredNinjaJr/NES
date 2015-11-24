@@ -49,7 +49,7 @@ initial begin: TEST_VECTORS
 #2 data_in = 6'h0F;
 
 #2 data_in = 6'h0F;
-
+RE = 1;
 #2 data_in = 6'h10;
 
 #2 data_in = 6'h11;
@@ -67,7 +67,7 @@ initial begin: TEST_VECTORS
 #2 data_in = 6'h17;
 
 	
-#3 RE = 1;
+#3 
 	WE = 0;
 
 end

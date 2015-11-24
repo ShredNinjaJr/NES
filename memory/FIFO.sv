@@ -13,8 +13,8 @@ logic [w-1:0] mem_array [2**n-1:0];
 
 logic [n :0] status_cnt;	/* count for number of elements stored */
 
-assign empty = (status_cnt == 0);
-assign full = (status_cnt == (2**n-1));
+assign empty = (r_addr == w_addr);
+assign full = (r_addr == (w_addr + 1));
 
  
 always_ff @(posedge clk, posedge reset)
@@ -35,7 +35,6 @@ begin
 			begin
 				mem_array[w_addr] <= data_in;
 				w_addr <= w_addr + 1;
-				status_cnt <= status_cnt + 1;
 			end
 		end
 		if(RE)
@@ -44,7 +43,6 @@ begin
 			begin
 				data_out <= mem_array[r_addr];
 				r_addr <= r_addr + 1;
-				status_cnt <= status_cnt - 1;
 			end
 		end
 		
