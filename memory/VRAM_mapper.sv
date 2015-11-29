@@ -6,9 +6,9 @@ module VRAM_mapper
 (
 	input WE,
 	input [15:0] addr,
-	input [7:0] CHR_ROM_out, CIRAM_out, palette_out,
+	input [7:0] CHR_ROM_out, CIRAM_out,
 	output logic[7:0] data_out,
-	output logic CIRAM_WE, palette_WE,
+	output logic CIRAM_WE,
 	
 	output logic [10:0] CIRAM_addr,
 	output logic [12:0] CHR_ROM_addr
@@ -30,7 +30,6 @@ assign CIRAM_addr[9:0] = addr[9:0];
 always_comb
 begin
 	CIRAM_WE = 0;
-	palette_WE = 0;
 	
 	 if(addr[13:0] < 14'h2000)	/* It is inside the cartridge */
 				data_out = CHR_ROM_out;
@@ -41,12 +40,8 @@ begin
 			data_out = CIRAM_out;
 			CIRAM_WE = WE;
 	 end
-	 
-	 else		/* It is addressing the palette */
-	 begin
-				palette_WE = WE;
-				data_out = palette_out;
-	 end
+	 else
+			data_out = 0;
 	 
 end
 

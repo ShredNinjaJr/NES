@@ -10,6 +10,14 @@ timeprecision 1ns;
 // instantiated as a submodule in testbench.
 logic clk = 0;	
 logic reset;
+logic [7:0]  VGA_R,					//VGA Red
+							                VGA_G,					//VGA Green
+												 VGA_B;					//VGA Blue
+										logic  VGA_CLK,				//VGA Clock
+							                VGA_SYNC_N,			//VGA Sync signal
+												 VGA_BLANK_N,			//VGA Blank signal
+												 VGA_VS,					//VGA virtical sync signal	
+												 VGA_HS;				//VGA horizontal sync signal
 
 ppu_toplevel toplevel(.*);
 

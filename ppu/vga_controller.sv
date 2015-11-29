@@ -1,5 +1,6 @@
-module  vga_controller ( input        Clk,       // 50 MHz clock
-                                      Reset,     // reset signal
+module  vga_controller ( input        clk,       // 50 MHz clock
+                                      reset,     // reset signal
+								 input[5:0]		palette_disp_idx,
                          output logic hs,        // Horizontal sync pulse.  Active low
 								              vs,        // Vertical sync pulse.  Active low
 												  pixel_clk, // 25 MHz pixel clock output
@@ -26,18 +27,18 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
     assign sync = 1'b0;
 
 	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
-    always_ff @ (posedge Clk or posedge Reset )
+    always_ff @ (posedge clk or posedge reset )
     begin 
-        if (Reset) 
+        if (reset) 
             clkdiv <= 1'b0;
         else 
             clkdiv <= ~ (clkdiv);
     end
 	
 	 	//Runs the horizontal counter  when it resets vertical counter is incremented
-   always_ff @ (posedge clkdiv or posedge Reset )
+   always_ff @ (posedge clkdiv or posedge reset )
 	begin: counter_proc
-		  if ( Reset ) 
+		  if ( reset ) 
 			begin 
 				 hc <= 10'b0000000000;
 				 vc <= 10'b0000000000;
@@ -63,9 +64,9 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
    
 	 //horizontal sync pulse is 96 pixels long at pixels 656-752
     //(signal is registered to ensure clean output waveform)
-    always_ff @ (posedge Reset or posedge clkdiv )
+    always_ff @ (posedge reset or posedge clkdiv )
     begin : hsync_proc
-        if ( Reset ) 
+        if ( reset ) 
             hs <= 1'b0;
         else  
             if ((((hc + 1) >= 10'b1010010000) & ((hc + 1) < 10'b1011110000))) 
@@ -76,9 +77,9 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
 	 
     //vertical sync pulse is 2 lines(800 pixels) long at line 490-491
     //(signal is registered to ensure clean output waveform)
-    always_ff @ (posedge Reset or posedge clkdiv )
+    always_ff @ (posedge reset or posedge clkdiv )
     begin : vsync_proc
-        if ( Reset ) 
+        if ( reset ) 
            vs <= 1'b0;
         else 
             if ( ((vc + 1) == 9'b111101010) | ((vc + 1) == 9'b111101011) ) 
@@ -91,20 +92,94 @@ module  vga_controller ( input        Clk,       // 50 MHz clock
     //(This signal is registered within the DAC chip, so we can leave it as pure combinational logic here)    
     always_comb
     begin 
-        if ( (hc >= 10'b100000000) | (vc >= 10'b011110000) ) 
+        if ( (hc >= 10'd640) | (vc >= 10'd480) ) 
             display = 1'b0;
         else 
             display = 1'b1;
     end 
    
 	
-    always_comb
+ always_comb
     begin:RGB_Display
-        begin 
-            VGA_R = 8'h00; 
-            VGA_G = 8'h00;
-            VGA_B = 8'hff;
-        end      
+	  if ( (hc >= 10'd256) | (vc >= 10'd240) )
+	  begin 
+			VGA_R = 8'h00; 
+			VGA_G = 8'h00;
+			VGA_B = 8'h00;
+	  end      
+	  else
+	  begin
+		case(palette_disp_idx)
+			 6'h00: {VGA_R, VGA_G, VGA_B} = {8'd84,8'd84,8'd84};  
+          6'h01: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd30,8'd116};
+          6'h02: {VGA_R, VGA_G, VGA_B} = {8'd8, 8'd16, 8'd144};
+          6'h03: {VGA_R, VGA_G, VGA_B} = {8'd48, 8'd0, 8'd136};
+          6'h04: {VGA_R, VGA_G, VGA_B} = {8'd68, 8'd0, 8'd100};
+          6'h05: {VGA_R, VGA_G, VGA_B} = {8'd92, 8'd0, 8'd48};
+          6'h06: {VGA_R, VGA_G, VGA_B} = {8'd84, 8'd4, 8'd0};
+          6'h07: {VGA_R, VGA_G, VGA_B} = {8'd60, 8'd25, 8'd0};
+          6'h08: {VGA_R, VGA_G, VGA_B} = {8'd32, 8'd42, 8'd0};
+          6'h09: {VGA_R, VGA_G, VGA_B} = {8'd8, 8'd58, 8'd0};
+          6'h0a: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd64, 8'd0};
+          6'h0b: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd60, 8'd0};
+          6'h0c: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd50, 8'd60};
+          6'h0d: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0,  8'd0};
+          6'h0e: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0,  8'd0}; 
+          6'h0f: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0,  8'd0};
+
+          6'h10: {VGA_R, VGA_G, VGA_B} = {8'd152,8'd150,8'd152}; 
+          6'h11: {VGA_R, VGA_G, VGA_B} = {8'd8 , 8'd76 ,8'd196};
+          6'h12: {VGA_R, VGA_G, VGA_B} = {8'd48, 8'd50, 8'd236};
+          6'h13: {VGA_R, VGA_G, VGA_B} = {8'd92, 8'd30, 8'd228};
+          6'h14: {VGA_R, VGA_G, VGA_B} = {8'd136,8'd20, 8'd176};
+          6'h15: {VGA_R, VGA_G, VGA_B} = {8'd160,8'd20, 8'd100};
+          6'h16: {VGA_R, VGA_G, VGA_B} = {8'd152,8'd34, 8'd32};
+          6'h17: {VGA_R, VGA_G, VGA_B} = {8'd120,8'd60, 8'd0};
+          6'h18: {VGA_R, VGA_G, VGA_B} = {8'd84, 8'd90, 8'd0};
+          6'h19: {VGA_R, VGA_G, VGA_B} = {8'd40, 8'd114,8'd0};
+          6'h1a: {VGA_R, VGA_G, VGA_B} = {8'd8, 8'd124, 8'd0};
+          6'h1b: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd118, 8'd40};
+          6'h1c: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd102, 8'd120};
+          6'h1d: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0};
+          6'h1e: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0}; 
+          6'h1f: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0};
+
+          6'h20: {VGA_R, VGA_G, VGA_B} = {8'd236,8'd238,8'd236}; 
+          6'h21: {VGA_R, VGA_G, VGA_B} = {8'd76, 8'd154,8'd236};
+          6'h22: {VGA_R, VGA_G, VGA_B} = {8'd120,8'd124,8'd236};
+          6'h23: {VGA_R, VGA_G, VGA_B} = {8'd176,8'd98, 8'd236};
+          6'h24: {VGA_R, VGA_G, VGA_B} = {8'd228, 8'd84, 8'd236};
+          6'h25: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd88, 8'd180};
+          6'h26: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd106,8'd100};
+          6'h27: {VGA_R, VGA_G, VGA_B} = {8'd212, 8'd136,8'd32};
+          6'h28: {VGA_R, VGA_G, VGA_B} = {8'd160,8'd170, 8'd0};
+          6'h29: {VGA_R, VGA_G, VGA_B} = {8'd116, 8'd196, 8'd0};
+          6'h2a: {VGA_R, VGA_G, VGA_B} = {8'd76, 8'd208, 8'd32};
+          6'h2b: {VGA_R, VGA_G, VGA_B} = {8'd56, 8'd204, 8'd108};
+          6'h2c: {VGA_R, VGA_G, VGA_B} = {8'd56, 8'd180, 8'd204};
+          6'h2d: {VGA_R, VGA_G, VGA_B} = {8'd60, 8'd60, 8'd60};
+          6'h2e: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0};
+          6'h2f: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0}; 
+
+          6'h30: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd238, 8'd236};
+          6'h31: {VGA_R, VGA_G, VGA_B} = {8'd168, 8'd204, 8'd236};
+	       6'h32: {VGA_R, VGA_G, VGA_B} = {8'd188, 8'd188, 8'd236};
+          6'h33: {VGA_R, VGA_G, VGA_B} = {8'd212, 8'd178, 8'd236};
+          6'h34: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd174, 8'd236};
+          6'h35: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd174, 8'd236};
+          6'h36: {VGA_R, VGA_G, VGA_B} = {8'd236, 8'd180, 8'd176};
+          6'h37: {VGA_R, VGA_G, VGA_B} = {8'd228, 8'd196, 8'd144};
+          6'h38: {VGA_R, VGA_G, VGA_B} = {8'd204, 8'd210, 8'd120};
+          6'h39: {VGA_R, VGA_G, VGA_B} = {8'd180, 8'd222, 8'd120};
+          6'h3a: {VGA_R, VGA_G, VGA_B} = {8'd168, 8'd226, 8'd144};
+          6'h3b: {VGA_R, VGA_G, VGA_B} = {8'd152, 8'd226, 8'd180};
+          6'h3c: {VGA_R, VGA_G, VGA_B} = {8'd160, 8'd214, 8'd228};
+          6'h3d: {VGA_R, VGA_G, VGA_B} = {8'd160, 8'd162, 8'd160};
+          6'h3e: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0}; 
+          6'h3f: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd0, 8'd0}; 
+	     endcase
+	  end
+	 
     end 
     assign blank = display;
     assign pixel_clk = clkdiv;

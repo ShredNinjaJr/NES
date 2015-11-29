@@ -24,10 +24,11 @@ add wave -noupdate -label load_PT_low -radix hexadecimal /bg_render_testbench/to
 add wave -noupdate -label load_PT_high -radix hexadecimal /bg_render_testbench/toplevel/render_block/load_PT_high
 add wave -noupdate -label temp_VRAM -radix hexadecimal /bg_render_testbench/toplevel/render_block/temp_VRAM_addr
 add wave -noupdate -label current_idx -radix hexadecimal /bg_render_testbench/toplevel/render_block/current_idx
+add wave -noupdate -label y_idx -radix hexadecimal /bg_render_testbench/toplevel/y_idx
 add wave -noupdate -label AT_idx -radix hexadecimal /bg_render_testbench/toplevel/render_block/AT_idx
 add wave -noupdate -label state -radix hexadecimal /bg_render_testbench/toplevel/render_block/state
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {8614913 ps} 0}
+WaveRestoreCursors {{Cursor 1} {1470000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 158
 configure wave -valuecolwidth 100

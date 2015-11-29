@@ -5,8 +5,10 @@ module ppu_render
 	input clk, reset, 
 	input [7:0] VRAM_data_in,
 	output logic [15:0] VRAM_addr,
-	output logic [3:0] pixel,
-	input [7:0] y_idx
+	output logic [4:0] pixel,
+	output logic render_ready,
+	input [7:0] y_idx,
+	input render
 );
 
 logic fine_X_scroll;
@@ -23,7 +25,6 @@ logic [5:0] current_idx;		/* Counter for the current index*/
 
 logic [5:0] AT_idx;		/* register to hold the value of AT index */
 
-logic render = 1;
 
 //logic AT_byte_idx = 
 /* Parallel in serial out shift register for next tile pattern data */
@@ -40,7 +41,8 @@ SIPO_shift_register AT_reg_high(.*,.in(next_AT_high), .out(AT_high));
 
 enum logic[3:0] { WAIT, FETCH_NT_1, FETCH_NT_2, FETCH_AT_1, FETCH_AT_2, 
 						FETCH_PT_LOW_1, FETCH_PT_LOW_2, FETCH_PT_HIGH_1, FETCH_PT_HIGH_2} state, next_state;
-
+						
+assign temp_VRAM_addr = 16'h2000 + (y_idx & 8'hF8);
 
 always_ff @(posedge clk, posedge reset)
 begin
@@ -49,8 +51,8 @@ if(reset)
 begin
 	state <= WAIT;
 	VRAM_addr <= 0;	
-	temp_VRAM_addr <= 16'h2000;
 	current_idx <= 0;
+	render_ready <= 0;
 end
 else
 begin
@@ -61,13 +63,15 @@ begin
 			load_PT_high <= 0;
 			load_PT_low <= 0;
 			current_idx <= 0;
-			temp_VRAM_addr <= 16'h2000 + (y_idx << 5);
+			
+			render_ready <= 1;
 		end
 		FETCH_NT_1:begin
 			shift_en <= 1;
 			VRAM_addr <= temp_VRAM_addr + current_idx;
 			load_PT_high <= 0;
 			load_PT_low <= 0;
+			render_ready <= 1;
 			
 		end
 		
@@ -82,7 +86,7 @@ begin
 		
 		FETCH_AT_2: begin
 			
-			unique case({y_idx[0], current_idx[1]})
+			unique case({y_idx[4], current_idx[1]})
 			
 			2'b11: begin
 				next_AT_high <= VRAM_data_in[7];
@@ -107,13 +111,13 @@ begin
 		end
 		
 		FETCH_PT_LOW_1:begin
-			VRAM_addr <= 16'h1000 + (PT_index << 4);
+			VRAM_addr <= 16'h1000 + (PT_index << 4) + y_idx[2:0];
 		end
 		FETCH_PT_LOW_2:begin
 			PT_in_low <= VRAM_data_in;
 		end
 		FETCH_PT_HIGH_1:begin
-			VRAM_addr <= 16'h1000 + (PT_index << 4)+ 8;
+			VRAM_addr <= 16'h1000 + (PT_index << 4)+ 8+ y_idx[2:0];
 			
 		end
 		FETCH_PT_HIGH_2:begin
@@ -122,6 +126,12 @@ begin
 			load_PT_low <= 1;
 			current_idx <= current_idx + 1;
 			
+			if(current_idx == 6'd31)
+				render_ready <= 0;
+			
+			if(current_idx > 6'd33)
+				current_idx <= 0;
+		
 		end
 	endcase
 
@@ -155,7 +165,12 @@ next_state = state;
 		FETCH_PT_HIGH_1: next_state = FETCH_PT_HIGH_2;
 		FETCH_PT_HIGH_2:begin
 			if(current_idx > 6'd33)
+			begin
+				if(y_idx < 8'd240)
+					next_state = FETCH_NT_1;
+				else
 				next_state = WAIT;
+			end
 			else
 				next_state = FETCH_NT_1;
 				
@@ -166,9 +181,12 @@ end
 
 
 
-
-
-assign pixel = {AT_high[0], AT_low[0], PT_high[0], PT_low[0]};
+/* Combinational logic responsible for retrieving the correct color*/
+always_comb
+begin
+	pixel = {1'b0, AT_high[0], AT_low[0], PT_high[0], PT_low[0]};
+	
+end
 
 
 

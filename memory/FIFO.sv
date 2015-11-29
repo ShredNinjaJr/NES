@@ -1,6 +1,6 @@
 /* Synchronous FIFO Module used to buffer I/O between dissimlar clocks. */
 /* Can read and write on the same cycle */
-module FIFO #(parameter w = 6, parameter n = 5)
+module FIFO #(parameter w = 6, parameter n = 8)
 (
 	input clk, reset, WE, RE,
 	input logic [w-1:0] data_in,
@@ -10,8 +10,6 @@ module FIFO #(parameter w = 6, parameter n = 5)
 
 logic [n-1:0] r_addr, w_addr;
 logic [w-1:0] mem_array [2**n-1:0];
-
-logic [n :0] status_cnt;	/* count for number of elements stored */
 
 assign empty = (r_addr == w_addr);
 assign full = (r_addr == (w_addr + 1));
@@ -25,7 +23,6 @@ begin
 		r_addr <= 0;
 		w_addr <= 0;
 		data_out <= 0;
-		status_cnt <= 0;
 	end
 	else
 	begin

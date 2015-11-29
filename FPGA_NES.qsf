@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE115F29C7
-set_global_assignment -name TOP_LEVEL_ENTITY ppu_toplevel
+set_global_assignment -name TOP_LEVEL_ENTITY FPGA_NES
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 15.0.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:27:35  NOVEMBER 08, 2015"
 set_global_assignment -name LAST_QUARTUS_VERSION 15.0.0
@@ -603,13 +603,20 @@ set_global_assignment -name SYSTEMVERILOG_FILE ppu/ppu_toplevel.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/CHR_ROM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/PRG_ROM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/bg_render_testbench.sv
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/vram_testbench.sv -section_id vram_testbench
 set_global_assignment -name EDA_TEST_BENCH_NAME bg_render_testbench -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id bg_render_testbench
 set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "100 ns" -section_id bg_render_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME bg_render_testbench -section_id bg_render_testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/bg_render_testbench.sv -section_id bg_render_testbench
 set_global_assignment -name CDF_FILE FPGA_NES.cdf
+set_global_assignment -name SYSTEMVERILOG_FILE memory/FIFO.sv
+set_global_assignment -name SYSTEMVERILOG_FILE testbenches/FIFO_testbench.sv
+set_global_assignment -name EDA_TEST_BENCH_NAME FIFO_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id FIFO_testbench
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "400 ns" -section_id FIFO_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME FIFO_testbench -section_id FIFO_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/vram_testbench.sv -section_id vram_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/bg_render_testbench.sv -section_id bg_render_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/FIFO_testbench.sv -section_id FIFO_testbench
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
