@@ -25,7 +25,7 @@ begin
 		data = 0;
 	 else if(shift_en)
 	 begin
-		data = {in, data[7:1]};
+		data = { data[6:0],in};
 	 end
 end
 

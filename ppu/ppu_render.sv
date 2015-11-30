@@ -9,7 +9,7 @@ module ppu_render
 	output logic render_ready,		/* Signal that asserts the 32 tiles on the scanline have finished*/
 	output logic scanline_done, 	/*signal that asserts that the scanline has finished */
 	input [7:0] y_idx,
-	input render
+	input render, VGA_HS, VGA_VS
 );
 
 logic fine_X_scroll;
@@ -129,13 +129,11 @@ begin
 			current_idx <= current_idx + 1;
 			
 			if(current_idx == 6'd31)
-				render_ready <= 0;
-			
-			if(current_idx > 6'd33)
 			begin
+			render_ready <= 0;
 				scanline_done <= 1;
-				current_idx <= 0;
 			end
+
 		
 		end
 	endcase
@@ -169,7 +167,7 @@ next_state = state;
 		
 		FETCH_PT_HIGH_1: next_state = FETCH_PT_HIGH_2;
 		FETCH_PT_HIGH_2:begin
-			if(current_idx > 6'd33)
+			if(current_idx == 6'd31)
 			begin
 				next_state = WAIT;
 			end

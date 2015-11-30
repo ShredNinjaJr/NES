@@ -586,7 +586,6 @@ set_location_assignment PIN_F14 -to EXT_IO[4]
 set_location_assignment PIN_E10 -to EXT_IO[5]
 set_location_assignment PIN_D9 -to EXT_IO[6]
 set_global_assignment -name SYSTEMVERILOG_FILE ppu/ppu_render.sv
-set_global_assignment -name SDC_FILE FPGA_NES.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/vram_testbench.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/VRAM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/RAM.sv
