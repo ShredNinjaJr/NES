@@ -60,7 +60,7 @@ end
 
 
 /* State machine for top level controller that controls the current scanline and vblank period */
-enum logic [1:0] {IDLE, HBLANK, VBLANK, RENDER} state, next_state;	
+enum logic [2:0] {IDLE, HBLANK, HBLANK_0, VBLANK, RENDER} state, next_state;	
 always_ff@(posedge VGA_CLK, posedge reset)
 begin:Scanline_logic
 	if(reset)
@@ -83,7 +83,7 @@ begin:Scanline_logic
 				if(!render_ready)
 					y_idx <= y_idx+1;
 			end
-			
+			HBLANK_0,
 			HBLANK:begin
 				render <= 0;
 			end
@@ -116,6 +116,12 @@ begin: next_state_logic
 	
 	HBLANK:begin
 		if(!VGA_HS && VGA_VS)
+			next_state = HBLANK_0;
+		if(!VGA_VS)
+			next_state = VBLANK;
+	end
+	HBLANK_0:begin
+		if(VGA_HS && VGA_VS)
 			next_state = RENDER;
 		if(!VGA_VS)
 			next_state = VBLANK;
