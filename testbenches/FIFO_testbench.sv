@@ -6,7 +6,7 @@ timeprecision 1ns;
 
 // These signals are internal because the processor will be 
 // instantiated as a submodule in testbench.
-logic clk = 0;	
+logic r_clk = 0, w_clk = 0;	
 logic WE, RE;
 logic reset;
 logic [5:0] data_out, data_in;
@@ -19,11 +19,16 @@ FIFO fifo_module(.*);
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
 always begin : CLOCK_GENERATION
-#1 clk = ~clk;
+#1 w_clk = ~w_clk;
+end
+
+always begin
+#2 r_clk = ~r_clk;
 end
 
 initial begin: CLOCK_INITIALIZATION
-    clk = 1;
+    r_clk = 1;
+	 w_clk = 1;
 	 reset = 0;
 	 RE = 0;
 	 WE = 0;
@@ -72,9 +77,5 @@ RE = 1;
 
 end
 
-always_ff@(posedge clk)
-begin: display
 
-	$display("data_in = %x, data_out = %x, Read = %d, Write = %d", data_in, data_out, RE, WE);
-end
 endmodule

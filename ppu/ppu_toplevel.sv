@@ -31,7 +31,7 @@ VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .
 ppu_render render_block(.*, .VRAM_data_in(VRAM_data_out));
 
 /* FIFO buffer for VGA */
-FIFO vga_FIFO(.clk(VGA_CLK), .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(palette_out[5:0]), 
+FIFO vga_FIFO(.r_clk(VGA_CLK), .w_clk(clk), .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(palette_out[5:0]), 
 					.data_out(FIFO_out), .empty(FIFO_empty), .full(FIFO_full));
 
 
