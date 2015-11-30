@@ -23,12 +23,14 @@ add wave -noupdate -label next_AT_high -radix hexadecimal /bg_render_testbench/t
 add wave -noupdate -label load_PT_low -radix hexadecimal /bg_render_testbench/toplevel/render_block/load_PT_low
 add wave -noupdate -label load_PT_high -radix hexadecimal /bg_render_testbench/toplevel/render_block/load_PT_high
 add wave -noupdate -label temp_VRAM -radix hexadecimal /bg_render_testbench/toplevel/render_block/temp_VRAM_addr
-add wave -noupdate -label current_idx -radix hexadecimal /bg_render_testbench/toplevel/render_block/current_idx
-add wave -noupdate -label y_idx -radix hexadecimal /bg_render_testbench/toplevel/y_idx
+add wave -noupdate -label current_idx -radix unsigned /bg_render_testbench/toplevel/render_block/current_idx
+add wave -noupdate -label y_idx -radix unsigned /bg_render_testbench/toplevel/y_idx
 add wave -noupdate -label AT_idx -radix hexadecimal /bg_render_testbench/toplevel/render_block/AT_idx
 add wave -noupdate -label state -radix hexadecimal /bg_render_testbench/toplevel/render_block/state
+add wave -noupdate /bg_render_testbench/toplevel/render
+add wave -noupdate /bg_render_testbench/toplevel/render_ready
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {1470000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {65787 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 158
 configure wave -valuecolwidth 100
@@ -44,4 +46,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {8603500 ps} {10073500 ps}
+WaveRestoreZoom {0 ps} {1470 ns}

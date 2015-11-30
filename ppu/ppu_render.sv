@@ -5,8 +5,9 @@ module ppu_render
 	input clk, reset, 
 	input [7:0] VRAM_data_in,
 	output logic [15:0] VRAM_addr,
-	output logic [4:0] pixel,
-	output logic render_ready,
+	output logic [4:0] pixel,		/* Palette address for the pixel */
+	output logic render_ready,		/* Signal that asserts the 32 tiles on the scanline have finished*/
+	output logic scanline_done, 	/*signal that asserts that the scanline has finished */
 	input [7:0] y_idx,
 	input render
 );
@@ -42,7 +43,7 @@ SIPO_shift_register AT_reg_high(.*,.in(next_AT_high), .out(AT_high));
 enum logic[3:0] { WAIT, FETCH_NT_1, FETCH_NT_2, FETCH_AT_1, FETCH_AT_2, 
 						FETCH_PT_LOW_1, FETCH_PT_LOW_2, FETCH_PT_HIGH_1, FETCH_PT_HIGH_2} state, next_state;
 						
-assign temp_VRAM_addr = 16'h2000 + (y_idx & 8'hF8);
+assign temp_VRAM_addr = 16'h2000 + ((y_idx & 8'hF8) << 2);
 
 always_ff @(posedge clk, posedge reset)
 begin
@@ -63,7 +64,7 @@ begin
 			load_PT_high <= 0;
 			load_PT_low <= 0;
 			current_idx <= 0;
-			
+			scanline_done <= 0;
 			render_ready <= 1;
 		end
 		FETCH_NT_1:begin
@@ -72,6 +73,7 @@ begin
 			load_PT_high <= 0;
 			load_PT_low <= 0;
 			render_ready <= 1;
+			scanline_done <= 0;
 			
 		end
 		
@@ -130,7 +132,10 @@ begin
 				render_ready <= 0;
 			
 			if(current_idx > 6'd33)
+			begin
+				scanline_done <= 1;
 				current_idx <= 0;
+			end
 		
 		end
 	endcase
@@ -166,9 +171,6 @@ next_state = state;
 		FETCH_PT_HIGH_2:begin
 			if(current_idx > 6'd33)
 			begin
-				if(y_idx < 8'd240)
-					next_state = FETCH_NT_1;
-				else
 				next_state = WAIT;
 			end
 			else

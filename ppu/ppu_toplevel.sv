@@ -21,7 +21,7 @@ logic [7:0] VRAM_data_out, VRAM_data_in, palette_out, palette_data_in;
 logic VRAM_WE, palette_WE;
 logic [7:0] y_idx;
 logic [4:0] pixel;
-logic render, render_ready;
+logic render, render_ready, scanline_done;
 
 logic [5:0] FIFO_out, FIFO_in;
 logic FIFO_WE, FIFO_RE, FIFO_empty, FIFO_full;
@@ -31,7 +31,7 @@ VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .
 ppu_render render_block(.*, .VRAM_data_in(VRAM_data_out));
 
 /* FIFO buffer for VGA */
-FIFO vga_FIFO(.r_clk(VGA_CLK), .w_clk(clk), .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(palette_out[5:0]), 
+FIFO vga_FIFO(.r_clk(VGA_CLK),  .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(palette_out[5:0]), 
 					.data_out(FIFO_out), .empty(FIFO_empty), .full(FIFO_full));
 
 
@@ -66,7 +66,7 @@ end
 
 
 /* State machine for top level controller that controls the current scanline and vblank period */
-enum logic [1:0] {IDLE, VBLANK, RENDER} state, next_state;	
+enum logic [1:0] {IDLE, HBLANK, VBLANK, RENDER} state, next_state;	
 always_ff@(posedge clk, posedge reset)
 begin:Scanline_logic
 	if(reset)
@@ -90,6 +90,9 @@ begin:Scanline_logic
 					y_idx <= y_idx+1;
 			end
 			
+			HBLANK:begin
+				render <= 0;
+			end
 			VBLANK: begin
 				render <= 0;
 				y_idx <= 0;
@@ -110,6 +113,15 @@ begin: next_state_logic
 	RENDER: begin
 	if(!VGA_VS)
 		next_state = VBLANK;
+	if(scanline_done)
+		next_state = HBLANK;
+	end
+	
+	HBLANK:begin
+		if(!VGA_HS && VGA_VS)
+			next_state = RENDER;
+		if(!VGA_VS || y_idx >= 8'd240)
+			next_state = VBLANK;
 	end
 	
 	VBLANK:begin

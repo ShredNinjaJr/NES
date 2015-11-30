@@ -2,7 +2,7 @@
 /* Can read and write on the same cycle */
 module FIFO #(parameter w = 6, parameter n = 8)
 (
-	input r_clk, w_clk, reset, WE, RE,
+	input r_clk,  reset, WE, RE,
 	input logic [w-1:0] data_in,
 	output logic [w-1:0] data_out,
 	output logic empty, full
@@ -13,9 +13,9 @@ logic [w-1:0] mem_array [2**n-1:0];
 
 assign empty = (r_addr == w_addr);
 assign full = (r_addr == (w_addr + 1));
-
  
-always_ff @(posedge w_clk, posedge reset)
+
+always_ff @(posedge r_clk, posedge reset)
 begin
 
 	if(reset)
@@ -35,13 +35,11 @@ begin
 	end
 end
 
-always_ff @ (posedge reset, posedge r_clk)
+always_ff @ ( posedge r_clk, posedge reset)
 begin
-
 	if(reset)
 	begin
 		r_addr <= 0;
-		data_out <= 0;
 	end
 	else
 	begin
