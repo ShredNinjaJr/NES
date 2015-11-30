@@ -66,13 +66,13 @@ begin
 		data = in;
 	 else if(shift_en)
 	 begin
-		data = {1'b0, data[7:1]};
+		data = {data[6:0], 1'b0};
 	 end
 end
 
 always_comb
 begin
-    out = data[0];
+    out = data[7];
 end
 
 endmodule
