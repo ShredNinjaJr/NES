@@ -9,7 +9,8 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 												             //   but the video DAC on the DE2 board requires an input for it.
 								 output logic [7:0]  VGA_R,					//VGA Red
 							                VGA_G,					//VGA Green
-												 VGA_B
+												 VGA_B,
+								 output logic FIFO_RE
 										);		  
 								 
     // 800 horizontal pixels indexed 0 to 799
@@ -19,24 +20,15 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 	 
 	 // horizontal pixel and vertical line counters
     logic [9:0] hc, vc;
-    logic clkdiv;
 	 // signal indicates if ok to display color for a pixel
 	 logic display;
 
     //Disable Composite Sync
     assign sync = 1'b0;
 
-	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
-    always_ff @ (posedge clk or posedge reset )
-    begin 
-        if (reset) 
-            clkdiv <= 1'b0;
-        else 
-            clkdiv <= ~ (clkdiv);
-    end
 	
 	 	//Runs the horizontal counter  when it resets vertical counter is incremented
-   always_ff @ (posedge clkdiv or posedge reset )
+   always_ff @ (posedge clk or posedge reset )
 	begin: counter_proc
 		  if ( reset ) 
 			begin 
@@ -64,7 +56,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
    
 	 //horizontal sync pulse is 96 pixels long at pixels 656-752
     //(signal is registered to ensure clean output waveform)
-    always_ff @ (posedge reset or posedge clkdiv )
+    always_ff @ (posedge reset or posedge clk )
     begin : hsync_proc
         if ( reset ) 
             hs <= 1'b0;
@@ -77,7 +69,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 	 
     //vertical sync pulse is 2 lines(800 pixels) long at line 490-491
     //(signal is registered to ensure clean output waveform)
-    always_ff @ (posedge reset or posedge clkdiv )
+    always_ff @ (posedge reset or posedge clk )
     begin : vsync_proc
         if ( reset ) 
            vs <= 1'b0;
@@ -103,12 +95,14 @@ module  vga_controller ( input        clk,       // 50 MHz clock
     begin:RGB_Display
 	  if ( (hc >= 10'd256) | (vc >= 10'd240) )
 	  begin 
+			FIFO_RE = 0;
 			VGA_R = 8'h00; 
 			VGA_G = 8'h00;
 			VGA_B = 8'h00;
 	  end      
 	  else
 	  begin
+		FIFO_RE = 1;
 		case(palette_disp_idx)
 			 6'h00: {VGA_R, VGA_G, VGA_B} = {8'd84,8'd84,8'd84};  
           6'h01: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd30,8'd116};
@@ -182,7 +176,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 	 
     end 
     assign blank = display;
-    assign pixel_clk = clkdiv;
+    assign pixel_clk = clk;
     
 
 endmodule
