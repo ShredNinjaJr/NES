@@ -121,7 +121,7 @@ begin: next_state_logic
 			next_state = VBLANK;
 	end
 	HBLANK_0:begin
-		if(VGA_HS && VGA_VS)
+		if(VGA_BLANK_N && VGA_VS)
 			next_state = RENDER;
 		if(!VGA_VS)
 			next_state = VBLANK;
