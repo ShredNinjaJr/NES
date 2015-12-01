@@ -18,12 +18,11 @@ module  FPGA_NES		( input         CLOCK_50,
     logic clk, reset;
 	 assign clk = CLOCK_50;	 
 	 assign reset = ~KEY[0];
-	logic [3:0] hex_4[7:0]; 
-	HexDriver hex_drivers[7:0] (hex_4, {HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0});
+	//logic [3:0] hex_4[7:0]; 
+	//HexDriver hex_drivers[7:0] (hex_4, {HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0});
 	
-	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = SW[15:0];
+	//assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = SW[15:0];
 	
-	//VRAM vram(.clk(Clk), .addr(SW), .WE(SW[16]), .data_out({hex_4[5],hex_4[4]}));
 
    ppu_toplevel ppu_toplevel(.*);
 	 

@@ -585,6 +585,23 @@ set_location_assignment PIN_H14 -to EXT_IO[3]
 set_location_assignment PIN_F14 -to EXT_IO[4]
 set_location_assignment PIN_E10 -to EXT_IO[5]
 set_location_assignment PIN_D9 -to EXT_IO[6]
+set_global_assignment -name EDA_TEST_BENCH_NAME bg_render_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id bg_render_testbench
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "100 ns" -section_id bg_render_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME bg_render_testbench -section_id bg_render_testbench
+set_global_assignment -name EDA_TEST_BENCH_NAME FIFO_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id FIFO_testbench
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "400 ns" -section_id FIFO_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME FIFO_testbench -section_id FIFO_testbench
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/vram_testbench.sv -section_id vram_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/bg_render_testbench.sv -section_id bg_render_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/FIFO_testbench.sv -section_id FIFO_testbench
+set_global_assignment -name SYSTEMVERILOG_FILE cpu/cpu6502.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ppu/ppu_render.sv
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/vram_testbench.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/VRAM.sv
@@ -602,23 +619,11 @@ set_global_assignment -name SYSTEMVERILOG_FILE ppu/ppu_toplevel.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/CHR_ROM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/PRG_ROM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/bg_render_testbench.sv
-set_global_assignment -name EDA_TEST_BENCH_NAME bg_render_testbench -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id bg_render_testbench
-set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "100 ns" -section_id bg_render_testbench
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME bg_render_testbench -section_id bg_render_testbench
 set_global_assignment -name CDF_FILE FPGA_NES.cdf
 set_global_assignment -name SYSTEMVERILOG_FILE memory/FIFO.sv
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/FIFO_testbench.sv
-set_global_assignment -name EDA_TEST_BENCH_NAME FIFO_testbench -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id FIFO_testbench
-set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "400 ns" -section_id FIFO_testbench
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME FIFO_testbench -section_id FIFO_testbench
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
-set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/vram_testbench.sv -section_id vram_testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/bg_render_testbench.sv -section_id bg_render_testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE testbenches/FIFO_testbench.sv -section_id FIFO_testbench
+set_global_assignment -name SYSTEMVERILOG_FILE memory/WRAM.sv
+set_global_assignment -name SYSTEMVERILOG_FILE memory/CPU_RAM.sv
+set_global_assignment -name SYSTEMVERILOG_FILE memory/WRAM_mapper.sv
+set_global_assignment -name SYSTEMVERILOG_FILE cpu/cpu_toplevel.sv
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

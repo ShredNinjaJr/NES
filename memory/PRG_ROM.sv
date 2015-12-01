@@ -1,6 +1,6 @@
 /* module that contains the CHR_ROM of the cartridge */
 module PRG_ROM(clk, addr,data_out);
-parameter n = 14;	
+parameter n = 15;	
 parameter w = 8;
 
 input clk;
