@@ -169,7 +169,7 @@ begin
 						vram_addr_out[15:8] <= cpu_data_in;
 					end
 					
-					ppu_addr_counter = ~ppu_addr_counter;
+					ppu_addr_counter <= ~ppu_addr_counter;
 				end
 				
 				PPUDATA:begin

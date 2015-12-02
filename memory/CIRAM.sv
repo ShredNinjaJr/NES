@@ -21,6 +21,6 @@ always @(negedge(clk)) begin
 	 begin
         reg_array[addr] <= data_in;
 	 end
-    data_out = reg_array[addr];
+    data_out <= reg_array[addr];
 end
 endmodule  
