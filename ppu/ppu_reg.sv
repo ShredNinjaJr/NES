@@ -91,7 +91,7 @@ module ppu_reg
 	 
 	input spr_overflow,	/* bit 5*/
 	input spr0_hit,		/* bit 6*/
-	input vblank_start	/* bit 7*/
+	input VGA_VS	/* bit 7*/
 );
 
 logic[7:0] dummy;	/* dummy register*/
@@ -106,13 +106,20 @@ parameter PPUADDR = 3'd6;
 parameter PPUDATA = 3'd7;
 
 
+logic vblank_start, vblank_clear;
 logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
 logic vblank_start_reg;
 
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to. 
 										0 is upper, 1 is lower */
-
+always_ff @( negedge VGA_VS, posedge vblank_clear)
+begin
+	if(vblank_clear)
+		vblank_start <= 0;
+	else
+		vblank_start <= 1;
+end
 
 always_ff @(posedge clk, posedge reset)
 begin
@@ -126,7 +133,7 @@ begin
 	else
 	begin
 		vblank_start_reg <= vblank_start;
-		
+		vblank_clear <= 0;
 		if(~cs_in)
 		begin:Chipselect
 			case(reg_addr)
@@ -144,6 +151,7 @@ begin
 				PPUSTATUS:begin
 					cpu_data_out <= {vblank_start_reg, spr0_hit, spr_overflow, lsb_last_write};
 					vblank_start_reg <= 0;	/* Clear the vblank upon read */
+					vblank_clear <= 1;
 				end
 				OAMADDR:begin
 					oam_addr_out <= cpu_data_in;

@@ -13,7 +13,7 @@ reg [w-1:0] reg_array [2**n-1:0];
 
 initial begin
 
- $readmemh("../ROMs/nametable.txt", reg_array, 0 , 1023);
+ //$readmemh("../ROMs/nametable.txt", reg_array, 0 , 1023);
 end
 
 always @(negedge(clk)) begin

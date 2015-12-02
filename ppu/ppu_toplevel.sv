@@ -47,7 +47,7 @@ vga_controller vga_controller( .palette_disp_idx(FIFO_out), .hs(VGA_HS), .vs(VGA
 										
 										
 ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
-					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out));
+					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS));
 
 										
 always_comb

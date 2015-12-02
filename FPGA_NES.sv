@@ -1,7 +1,7 @@
 module  FPGA_NES		( input         CLOCK_50,
                        input[3:0]    KEY, //bit 0 is set up as Reset
 							  //input[16:0]   SW,
-							  //output logic [6:0]  HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7,
+							  output logic [6:0]  HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7,
 							  //output [8:0]  LEDG,
 							  //output [17:0] LEDR,
 							  // VGA Interface 
@@ -17,7 +17,8 @@ module  FPGA_NES		( input         CLOCK_50,
     
     logic clk, reset;
 	 assign reset = ~KEY[0];
-	 
+	  reg [7:0]		acc, instr;
+   reg [15:0]    pc;
 	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
     always_ff @ (posedge CLOCK_50 or posedge reset )
     begin 
@@ -26,17 +27,21 @@ module  FPGA_NES		( input         CLOCK_50,
         else 
             clk <= ~ (clk);
     end
-	//logic [3:0] hex_4[7:0]; 
-	//HexDriver hex_drivers[7:0] (hex_4, {HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0});
+	logic [3:0] hex_4[7:0]; 
+	HexDriver hex_drivers[7:0] (hex_4, {HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0});
 	
-	//assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = SW[15:0];
+	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = pc;
+	assign {hex_4[5], hex_4[4]} = instr;
+	assign {hex_4[7], hex_4[6]} = acc;
 	
-	
+	logic nres_in;
+assign nres_in	= KEY[1];
 	logic rdy, ppu_reg_cs, vram_WE;
 	logic [2:0] ppu_reg_addr;
 	logic [7:0] vram_data_out, vram_data_in;
-	assign rdy = 1;
-	cpu_toplevel cpu_toplevel(	.*,	.nmi(VGA_VS));
+	logic nmi;
+	assign rdy = KEY[2];
+	cpu_toplevel cpu_toplevel( .*);
 	
    ppu_toplevel ppu_toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 	 

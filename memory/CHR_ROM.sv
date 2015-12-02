@@ -11,7 +11,7 @@ output logic[w-1:0] data_out;
 reg [w-1:0] reg_array [2**n-1:0];
 initial
 begin
-    $readmemh("../ROMs/mario_chr.txt", reg_array);
+    $readmemh("../ROMs/dk_chr", reg_array);
 end
 
 
