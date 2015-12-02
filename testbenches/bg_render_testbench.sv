@@ -24,7 +24,7 @@ ppu_toplevel toplevel(.*);
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
 always begin : CLOCK_GENERATION
-#1 clk = ~clk;
+#2 clk = ~clk;
 end
 
 initial begin: CLOCK_INITIALIZATION
