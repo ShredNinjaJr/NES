@@ -6,7 +6,7 @@ timeprecision 1ns;
 
 // These signals are internal because the processor will be 
 // instantiated as a submodule in testbench.
-logic r_clk = 0, w_clk = 0;	
+logic clk = 0;	
 logic WE, RE;
 logic reset;
 logic [5:0] data_out, data_in;
@@ -19,16 +19,12 @@ FIFO fifo_module(.*);
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
 always begin : CLOCK_GENERATION
-#1 w_clk = ~w_clk;
+#2 clk = clk;
 end
 
-always begin
-#2 r_clk = ~r_clk;
-end
 
 initial begin: CLOCK_INITIALIZATION
-    r_clk = 1;
-	 w_clk = 1;
+	clk = 1;
 	 reset = 0;
 	 RE = 0;
 	 WE = 0;
