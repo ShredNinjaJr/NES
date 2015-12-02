@@ -5,6 +5,10 @@
 module ppu_toplevel
 (
 	input clk, reset,
+	input vram_WE, ppu_reg_cs,
+	input [7:0] cpu_data_in,
+	output logic [7:0] cpu_data_out,
+	input [2:0] ppu_reg_addr, 
 	output logic [7:0]  VGA_R,			//VGA Red
 					 VGA_G,					//VGA Green
 					 VGA_B,					//VGA Blue
@@ -39,6 +43,13 @@ palette_mem palette_mem(.clk(clk), .reset(reset), .addr(pixel), .data_in(palette
 
 vga_controller vga_controller( .palette_disp_idx(FIFO_out), .hs(VGA_HS), .vs(VGA_VS), .sync(VGA_SYNC_N),
 										.blank(VGA_BLANK_N), .pixel_clk(VGA_CLK), .*);
+										
+										
+										
+ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
+					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out));
+
+										
 always_comb
 begin: FIFO_logic
 	if(reset)

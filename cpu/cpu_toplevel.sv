@@ -17,7 +17,11 @@ logic [7:0] wram_data_in, wram_data_out;
 logic [15:0] wram_addr;
 logic wram_WE;
 
-cpu6502 cpu(.clk(clk), .reset(reset), .addr(wram_addr), .data_out(wram_data_in), .data_in(wram_data_out), .irq(1'b1));
+ reg [7:0]		acc;
+ reg [7:0]    instr;
+ reg [15:0]    pc;
+
+cpu6502 cpu(.*, .we(wram_WE), .addr(wram_addr), .data_out(wram_data_out), .data_in(wram_data_in), .irq(1'b1));
 
 WRAM WRAM(.*, .addr(wram_addr), .WE(wram_WE), .data_out(wram_data_in), .data_in(wram_data_out));
 

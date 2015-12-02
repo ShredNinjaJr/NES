@@ -25,6 +25,7 @@ always_comb
 begin
 	CPU_RAM_WE = 0;
 	ppu_reg_cs = 1;
+	vram_WE = 0;
 	 if(addr[13:0] < 16'h2000)	/* It is inside the cartridge */
 	 begin
 				data_out = CPU_RAM_out;

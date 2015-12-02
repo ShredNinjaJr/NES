@@ -19,8 +19,11 @@ logic [7:0]  VGA_R,					//VGA Red
 												 VGA_VS,					//VGA virtical sync signal	
 												 VGA_HS;				//VGA horizontal sync signal
 
-ppu_toplevel toplevel(.*);
-
+ppu_toplevel toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
+logic rdy, ppu_reg_cs, vram_WE;
+	logic [2:0] ppu_reg_addr;
+	logic [7:0] vram_data_out, vram_data_in;
+	
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
 always begin : CLOCK_GENERATION

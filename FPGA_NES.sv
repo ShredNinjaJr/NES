@@ -31,8 +31,14 @@ module  FPGA_NES		( input         CLOCK_50,
 	
 	//assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = SW[15:0];
 	
-
-   ppu_toplevel ppu_toplevel(.*);
+	
+	logic rdy, ppu_reg_cs, vram_WE;
+	logic [2:0] ppu_reg_addr;
+	logic [7:0] vram_data_out, vram_data_in;
+	assign rdy = 1;
+	cpu_toplevel cpu_toplevel(	.*,	.nmi(VGA_VS));
+	
+   ppu_toplevel ppu_toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 	 
 	 
 	
