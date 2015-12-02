@@ -52,7 +52,7 @@ if(reset)
 begin
 	state <= WAIT;
 	VRAM_addr <= 0;	
-	current_idx <= 2;
+	current_idx <= 1;
 	render_ready <= 0;
 end
 else
@@ -63,7 +63,7 @@ begin
 			shift_en <= 0;
 			load_PT_high <= 0;
 			load_PT_low <= 0;
-			current_idx <= 2;
+			current_idx <= 1;
 			scanline_done <= 0;
 			render_ready <= 1;
 		end
@@ -133,7 +133,7 @@ begin
 			render_ready <= 0;
 				current_idx <= 0;
 			end
-			if(current_idx == 6'd1)
+			if(current_idx == 6'd0)
 				scanline_done <= 1;
 		
 		end
@@ -168,7 +168,7 @@ next_state = state;
 		
 		FETCH_PT_HIGH_1: next_state = FETCH_PT_HIGH_2;
 		FETCH_PT_HIGH_2:begin
-			if(current_idx == 6'd1)
+			if(current_idx == 6'd0)
 			begin
 				next_state = WAIT;
 			end
