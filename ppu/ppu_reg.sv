@@ -16,6 +16,10 @@ module ppu_reg
 	output logic [7:0] oam_data_in,		/* OAM data if reading from OAM (0x2004 reads)*/
 	output logic [7:0] oam_addr_out,		/* OAM addr to read/write to*/
 	output logic oam_WE, vram_WE,
+	output logic [4:0]palette_mem_addr,
+	output logic palette_WE,
+	output logic [7:0] palette_data_out,
+	input [7:0] palette_data_in,
 	
 	/* register bit outputs */
 	
@@ -131,6 +135,9 @@ begin
 		vram_WE <= 0;
 		ppu_addr_counter <= 0;
 		show_bg <= 0;
+		palette_data_out <= 0;
+		palette_WE <= 0;
+		palette_mem_addr <= 0;
 	end
 	else
 	begin
@@ -184,16 +191,26 @@ begin
 				end
 				
 				PPUDATA:begin
-					if(WE)
+					if(vram_addr_out[13:8] == 6'h3F)
 					begin
-						vram_data_in <= cpu_data_in;
-						vram_WE <= 1;
-					end
-					else
-					begin
-						cpu_data_out <= vram_data_out;
+						palette_mem_addr <= vram_addr_out[4:0];
+						palette_WE <= WE;
+						palette_data_out <= cpu_data_in;
+						cpu_data_out <= palette_data_in;
 					end
 					
+					else
+					begin
+						if(WE)
+						begin
+							vram_data_in <= cpu_data_in;
+							vram_WE <= 1;
+						end
+						else
+						begin
+							cpu_data_out <= vram_data_out;
+						end
+					end
 					vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
 				end
 				

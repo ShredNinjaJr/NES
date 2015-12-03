@@ -27,7 +27,7 @@ logic [7:0] y_idx;
 logic [4:0] pixel;
 logic render, render_ready, scanline_done;
 logic render_frame;
-
+logic [4:0] palette_addr, palette_mem_addr;
 logic [5:0] FIFO_out, FIFO_in;
 logic FIFO_WE, FIFO_RE, FIFO_empty, FIFO_full;
 
@@ -43,7 +43,7 @@ FIFO vga_FIFO(.clk(clk),  .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(p
 					.data_out(FIFO_out), .empty(FIFO_empty), .full(FIFO_full));
 
 
-palette_mem palette_mem(.clk(clk), .reset(reset), .addr(pixel), .data_in(palette_data_in), .WE(palette_WE), .data_out(palette_out));
+palette_mem palette_mem(.clk(clk), .reset(reset), .addr(palette_mem_addr), .data_in(palette_data_in), .WE(palette_WE), .data_out(palette_out));
 
 vga_controller vga_controller( .palette_disp_idx(FIFO_out), .hs(VGA_HS), .vs(VGA_VS), .sync(VGA_SYNC_N),
 										.blank(VGA_BLANK_N), .pixel_clk(VGA_CLK), .*);
@@ -53,12 +53,13 @@ vga_controller vga_controller( .palette_disp_idx(FIFO_out), .hs(VGA_HS), .vs(VGA
 ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
 					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS), 
 					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
-					.show_bg(show_bg));
+					.show_bg(show_bg),
+					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in));
 
 
 assign render_frame = render & show_bg;
 assign VRAM_addr = (render_frame) ? vram_render_addr : ppu_reg_vram_addr;
-
+assign palette_mem_addr = (render_frame) ? pixel : palette_addr;
 					
 always_comb
 begin: FIFO_logic
