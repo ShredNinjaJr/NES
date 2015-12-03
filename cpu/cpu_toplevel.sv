@@ -26,7 +26,7 @@ cpu cpu(
   .ready_in(rdy),       // ready signal
 
   // Interrupt lines.
-  .nnmi_in(1'b1),        // /nmi interrupt signal (active low)
+  .nnmi_in(nmi),        // /nmi interrupt signal (active low)
   .nres_in(nres_in),        // /res interrupt signal (console reset, active low)
 	.nirq_in(1'b1),        // /irq intterupt signal (active low)
 

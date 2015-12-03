@@ -40,6 +40,7 @@ assign nres_in	= KEY[1];
 	logic [2:0] ppu_reg_addr;
 	logic [7:0] vram_data_out, vram_data_in;
 	logic nmi;
+assign nmi = KEY[3];
 	assign rdy = KEY[2];
 	cpu_toplevel cpu_toplevel( .*);
 	
