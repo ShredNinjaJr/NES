@@ -9,13 +9,13 @@ module ppu_reg
 	input [7:0] cpu_data_in,		/* Databus of  CPU read*/
 	output logic [7:0]cpu_data_out,	/* CPU databus write*/
 	input [2:0] reg_addr,		/* Addr of register being chosen*/
-	output logic [7:0] vram_data_out,	/* Data out from the ppu if writing to VRAM */
+	input logic [7:0] vram_data_out,	/* Data in to  the ppu if writing to VRAM */
 	output logic [7:0] vram_data_in,	/* Data out from the ppu if reading from VRAM */
 	output logic [15:0] vram_addr_out,	/* Vram addr_out to write/read data to VRAM */	
 	output logic [7:0] oam_data_out,		/* OAM data if writing to OAM (0x2004 writes)*/
 	output logic [7:0] oam_data_in,		/* OAM data if reading from OAM (0x2004 reads)*/
 	output logic [7:0] oam_addr_out,		/* OAM addr to read/write to*/
-	output logic oam_WE,
+	output logic oam_WE, vram_WE,
 	
 	/* register bit outputs */
 	
@@ -109,7 +109,7 @@ parameter PPUDATA = 3'd7;
 logic vblank_start, vblank_clear;
 logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
 logic vblank_start_reg;
-
+logic cs_in_reg;
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to. 
 										0 is upper, 1 is lower */
@@ -128,13 +128,16 @@ begin
 		cpu_data_out <= 0;
 		vblank_start_reg <= 0;
 		oam_data_out <= 0;
-		vram_data_out <= 0;
+		vram_WE <= 0;
+		ppu_addr_counter <= 0;
+		show_bg <= 0;
 	end
 	else
 	begin
+		cs_in_reg <= cs_in;
 		vblank_start_reg <= vblank_start;
 		vblank_clear <= 0;
-		if(~cs_in)
+		if(~cs_in & cs_in_reg)
 		begin:Chipselect
 			case(reg_addr)
 				
@@ -161,7 +164,7 @@ begin
 					begin
 						oam_data_out <= cpu_data_in;
 						oam_WE <= WE;
-						oam_addr_out <= oam_addr_out + 1;
+						oam_addr_out <= oam_addr_out + 8'b1;
 					end
 					else
 						cpu_data_out <= oam_data_in;
@@ -183,11 +186,12 @@ begin
 				PPUDATA:begin
 					if(WE)
 					begin
-						vram_data_out <= cpu_data_in;
+						vram_data_in <= cpu_data_in;
+						vram_WE <= 1;
 					end
 					else
 					begin
-						cpu_data_out <= vram_data_in;
+						cpu_data_out <= vram_data_out;
 					end
 					
 					vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);

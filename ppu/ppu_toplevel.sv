@@ -20,19 +20,23 @@ module ppu_toplevel
 );
 
 
-logic [15:0] VRAM_addr;
+logic [15:0] VRAM_addr, vram_render_addr, ppu_reg_vram_addr;
 logic [7:0] VRAM_data_out, VRAM_data_in, palette_out, palette_data_in;
 logic VRAM_WE, palette_WE;
 logic [7:0] y_idx;
 logic [4:0] pixel;
 logic render, render_ready, scanline_done;
+logic render_frame;
 
 logic [5:0] FIFO_out, FIFO_in;
 logic FIFO_WE, FIFO_RE, FIFO_empty, FIFO_full;
 
+logic show_bg;
+
 VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .data_in(VRAM_data_in));
 
-ppu_render render_block(.*,  .VRAM_data_in(VRAM_data_out));
+ppu_render render_block(.*, .render(render_frame), .VRAM_addr(vram_render_addr),  .VRAM_data_in(VRAM_data_out));
+
 
 /* FIFO buffer for VGA */
 FIFO vga_FIFO(.clk(clk),  .reset(reset), .WE(FIFO_WE), .RE(FIFO_RE), 	.data_in(palette_out[5:0]), 
@@ -47,9 +51,15 @@ vga_controller vga_controller( .palette_disp_idx(FIFO_out), .hs(VGA_HS), .vs(VGA
 										
 										
 ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
-					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS));
+					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS), 
+					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
+					.show_bg(show_bg));
 
-										
+
+assign render_frame = render & show_bg;
+assign VRAM_addr = (render_frame) ? vram_render_addr : ppu_reg_vram_addr;
+
+					
 always_comb
 begin: FIFO_logic
 	if(reset)
@@ -92,7 +102,7 @@ begin:Scanline_logic
 			RENDER: begin
 				render <= 1;
 				if(!render_ready)
-					y_idx <= y_idx+1;
+					y_idx <= y_idx+ 8'b1;
 			end
 			HBLANK_0,
 			HBLANK:begin

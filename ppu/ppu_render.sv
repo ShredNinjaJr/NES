@@ -119,14 +119,14 @@ begin
 			PT_in_low <= VRAM_data_in;
 		end
 		FETCH_PT_HIGH_1:begin
-			VRAM_addr <= 16'h1000 + (PT_index << 4)+ 8+ y_idx[2:0];
+			VRAM_addr <= 16'h1000 + (PT_index << 4)+ 16'h8 + y_idx[2:0];
 			
 		end
 		FETCH_PT_HIGH_2:begin
 			PT_in_high <= VRAM_data_in;
 			load_PT_high <= 1;
 			load_PT_low <= 1;
-			current_idx <= current_idx + 1;
+			current_idx <= current_idx + 6'b1;
 			
 			if(current_idx == 6'd31)
 			begin

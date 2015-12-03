@@ -45,6 +45,11 @@ initial begin: TEST_VECTORS
 
 #2 reset = 0;
 
+#4 ppu_reg_cs = 0;
+	ppu_reg_addr = 3'd2;
+	
+#8 ppu_reg_cs = 1;
+
 
 	
 

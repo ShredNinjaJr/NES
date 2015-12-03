@@ -12,8 +12,11 @@ logic clk = 0;
 logic WE;
 logic [15:0] addr;
 logic [7:0] data_out, data_in;
-
-VRAM vram(.*);
+logic [7:0] vram_data_in;
+logic [7:0] vram_data_out;
+logic ppu_reg_cs, vram_WE;
+logic [2:0] ppu_reg_addr;
+WRAM wram(.*);
 
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
@@ -34,26 +37,26 @@ initial begin: TEST_VECTORS
 #2 addr = 16'h0000;
 	WE = 1;
 	
-#4 addr = 16'h1020;
+#4 addr = 16'h2000;
 	WE = 0;
 
-#4 addr = 16'h2000;
+#4 addr = 16'h2002;
 	WE = 1;
 
-#4 addr = 16'h2850;
+#4 addr = 16'h3005;
 	WE = 0;
 	
 #4 addr = 16'h3F00;
 	WE = 1;
 	
-#4 addr = 16'h3F14;
+#4 addr = 16'h8000;
 	WE = 0;
 
-#4 addr = 16'h40F0;
+#4 addr = 16'h8f80;
 	WE = 1;
 	
 #4 addr = 16'hA8F0;
-	WE = 1;
+	WE = 0;
 	
 #4 addr = 16'hF0F0;
 	WE = 1;

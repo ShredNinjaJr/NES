@@ -29,7 +29,7 @@ begin
 			if(~full)
 			begin
 				mem_array[w_addr] <= data_in;
-				w_addr <= w_addr + 1;
+				w_addr <= w_addr + 8'b1;
 			end
 		end		
 	end
@@ -48,7 +48,7 @@ begin
 			if(~empty)
 			begin
 				data_out <= mem_array[r_addr];
-				r_addr <= r_addr + 1;
+				r_addr <= r_addr + 8'b1;
 			end
 		end
 		

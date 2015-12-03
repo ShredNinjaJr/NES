@@ -50,7 +50,7 @@ module cpu
   output reg  [ 7:0] dbgreg_out,     // dbg reg read output
   output reg         brk_out         // debug break signal
 );
-assign PC = {q_pch, q_pcl};
+
 
 // dbgreg_sel defines. Selects register for read/write through the debugger block.
 `define REGSEL_PCL 0
@@ -254,7 +254,7 @@ reg  [7:0] q_s;      // stack pointer register
 wire [7:0] d_s;
 reg  [2:0] q_t;      // timing cycle register
 reg  [2:0] d_t;
-
+assign PC = {q_pch, q_pcl};
 // Internal buses.
 wire [7:0] adl;      // ADL bus
 wire [7:0] adh_in,   // ADH bus
@@ -377,7 +377,7 @@ always @(posedge clk_in)
       q_clk_phase <= 6'h01;
   end
 
-assign d_clk_phase = (q_clk_phase == 6'h37) ? 6'h00 : q_clk_phase + 6'h01;
+assign d_clk_phase = (q_clk_phase == 6'h3) ? 6'h00 : q_clk_phase + 6'h01;
 
 //
 // Interrupt and Reset Control.
@@ -513,7 +513,7 @@ always @(posedge clk_in)
         q_pd  <= 8'h00;
         q_add <= 8'h00;
       end
-    else if (rdy && (q_clk_phase == 6'h1C))
+    else if (rdy && (q_clk_phase == 6'h2))
       begin
         q_pcl <= d_pcl;
         q_pch <= d_pch;
@@ -2033,9 +2033,9 @@ assign dl_adl     = dl_to_abl;
 assign pcl_adl    = load_prg_byte        | load_prg_byte_noinc  |
                     pcl_to_bi;
 assign s_adl      = s_to_abl             | s_to_bi              | s_to_pcl;
-assign zero_adl0  = fa_to_abl            | fc_to_abl            | fe_to_abl;
-assign zero_adl1  = fc_to_abl            | fd_to_abl;
-assign zero_adl2  = fa_to_abl            | fb_to_abl;
+wire zero_adl0  = fa_to_abl            | fc_to_abl            | fe_to_abl;
+wire zero_adl1  = fc_to_abl            | fd_to_abl;
+wire zero_adl2  = fa_to_abl            | fb_to_abl;
 assign dl_adh     = dl_to_abh            | dl_to_pch;
 assign pch_adh    = load_prg_byte        | load_prg_byte_noinc;
 assign zero_adh0  = zero_to_abh;

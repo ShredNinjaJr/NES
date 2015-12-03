@@ -34,10 +34,10 @@ cpu cpu(
   .d_in(wram_data_in),           // data input bus
   .d_out(wram_data_out),          // data output bus
   .a_out(wram_addr),          // address bus
-  .r_nw_out(~wram_WE),   // R/!W signal
+  .r_nw_out(wram_WE),   // R/!W signal
   .PC(pc)
  );
 
-WRAM WRAM(.*, .addr(wram_addr), .WE(wram_WE), .data_out(wram_data_in), .data_in(wram_data_out));
+WRAM WRAM(.*, .addr(wram_addr), .WE(~wram_WE), .data_out(wram_data_in), .data_in(wram_data_out));
 
 endmodule
