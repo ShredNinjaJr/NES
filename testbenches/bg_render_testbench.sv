@@ -21,6 +21,7 @@ logic [7:0]  VGA_R,					//VGA Red
 logic [7:0] vram_data_out, vram_data_in;
 logic rdy, ppu_reg_cs, vram_WE;
 logic [2:0] ppu_reg_addr;
+logic NMI_enable;
 ppu_toplevel toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 
 

@@ -9,7 +9,8 @@ module ppu_render
 	output logic render_ready,		/* Signal that asserts the 32 tiles on the scanline have finished*/
 	output logic scanline_done, 	/*signal that asserts that the scanline has finished */
 	input [7:0] y_idx,
-	input render, VGA_HS, VGA_VS
+	input render, VGA_HS, VGA_VS,
+	input bg_pt_addr, spr_pt_addr
 );
 
 logic fine_X_scroll;
@@ -113,13 +114,13 @@ begin
 		end
 		
 		FETCH_PT_LOW_1:begin
-			VRAM_addr <= 16'h1000 + (PT_index << 4) + y_idx[2:0];
+			VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
 		end
 		FETCH_PT_LOW_2:begin
 			PT_in_low <= VRAM_data_in;
 		end
 		FETCH_PT_HIGH_1:begin
-			VRAM_addr <= 16'h1000 + (PT_index << 4)+ 16'h8 + y_idx[2:0];
+			VRAM_addr <= ({4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]} + 16'h8);
 			
 		end
 		FETCH_PT_HIGH_2:begin

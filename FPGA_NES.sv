@@ -33,14 +33,14 @@ module  FPGA_NES		( input         CLOCK_50,
 	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = pc;
 	assign {hex_4[5], hex_4[4]} = instr;
 	assign {hex_4[7], hex_4[6]} = acc;
-	
+	logic NMI_enable;
 	logic nres_in;
 assign nres_in	= KEY[1];
 	logic rdy, ppu_reg_cs, vram_WE;
 	logic [2:0] ppu_reg_addr;
 	logic [7:0] vram_data_out, vram_data_in;
 	logic nmi;
-assign nmi = KEY[3];
+assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
 	assign rdy = KEY[2];
 	cpu_toplevel cpu_toplevel( .*);
 	

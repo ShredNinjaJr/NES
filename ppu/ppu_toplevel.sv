@@ -16,7 +16,8 @@ module ppu_toplevel
 					 VGA_SYNC_N,			//VGA Sync signal
 					 VGA_BLANK_N,			//VGA Blank signal
 					 VGA_VS,					//VGA vertical sync signal	
-					 VGA_HS					//VGA horizontal sync signal
+					 VGA_HS,					//VGA horizontal sync signal
+	output logic NMI_enable
 );
 
 
@@ -32,6 +33,7 @@ logic [5:0] FIFO_out, FIFO_in;
 logic FIFO_WE, FIFO_RE, FIFO_empty, FIFO_full;
 
 logic show_bg;
+logic bg_pt_addr, spr_pt_addr;
 
 VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .data_in(VRAM_data_in));
 
@@ -54,7 +56,8 @@ ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(pp
 					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS), 
 					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
 					.show_bg(show_bg),
-					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in));
+					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in),
+					.NMI_enable(NMI_enable), .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr));
 
 
 assign render_frame = render & show_bg;
@@ -82,7 +85,7 @@ end
 
 
 /* State machine for top level controller that controls the current scanline and vblank period */
-enum logic [2:0] {IDLE, HBLANK, HBLANK_0, VBLANK, RENDER} state, next_state;	
+enum logic [2:0] {IDLE, HBLANK, HBLANK_0, VBLANK, VBLANK_0, RENDER} state, next_state;	
 always_ff@(posedge VGA_CLK, posedge reset)
 begin:Scanline_logic
 	if(reset)
@@ -109,6 +112,7 @@ begin:Scanline_logic
 			HBLANK:begin
 				render <= 0;
 			end
+			VBLANK_0,
 			VBLANK: begin
 				render <= 0;
 				y_idx <= 0;
@@ -132,7 +136,7 @@ begin: next_state_logic
 	if(scanline_done)
 		next_state = HBLANK;
 	if(y_idx >= 8'd240)
-		next_state = VBLANK;
+		next_state = VBLANK_0;
 	
 	end
 	
@@ -149,8 +153,12 @@ begin: next_state_logic
 			next_state = VBLANK;
 	end
 	
+	VBLANK_0: begin
+		if(!VGA_VS)
+			next_state = VBLANK;
+	end
 	VBLANK:begin
-		if(VGA_VS)
+		if(VGA_VS & VGA_BLANK_N)
 			next_state = RENDER;
 	end
 	default: next_state = IDLE;

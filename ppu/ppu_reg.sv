@@ -153,7 +153,7 @@ begin
 				
 				PPUCTRL:begin
 						if(WE)
-							{NMI_enable, dummy, sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, base_nt_addr} <= cpu_data_in;
+							{NMI_enable, dummy[0], sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, base_nt_addr} <= cpu_data_in;
 					end
 				
 				PPUMASK:begin
