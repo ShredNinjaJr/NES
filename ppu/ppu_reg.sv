@@ -144,6 +144,9 @@ begin
 		cs_in_reg <= cs_in;
 		vblank_start_reg <= vblank_start;
 		vblank_clear <= 0;
+		vram_WE <= 0;
+		palette_WE <= 0;
+		oam_WE <= 0;
 		if(~cs_in & cs_in_reg)
 		begin:Chipselect
 			case(reg_addr)
@@ -202,10 +205,11 @@ begin
 					
 					else
 					begin
+						vram_WE <= WE;
 						if(WE)
 						begin
 							vram_data_in <= cpu_data_in;
-							vram_WE <= 1;
+							
 						end
 						else
 						begin
