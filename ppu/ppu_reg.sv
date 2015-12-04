@@ -160,7 +160,8 @@ begin
 				
 				PPUSTATUS:begin
 					cpu_data_out <= {vblank_start_reg, spr0_hit, spr_overflow, lsb_last_write};
-					vblank_start_reg <= 0;	/* Clear the vblank upon read */
+					if(vblank_start_reg == 1'b1)
+						vblank_start_reg <= 0;	/* Clear the vblank upon read */
 					vblank_clear <= 1;
 				end
 				OAMADDR:begin
