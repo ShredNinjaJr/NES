@@ -15,7 +15,7 @@ module ppu_render
 
 logic fine_X_scroll;
 logic shift_en;
-logic [7:0] PT_in_low, PT_in_high;				/* temporary shift registers to hold the values fetched */
+logic [7:0] PT_in_low, PT_in_high;				/* temporary registers to hold the values fetched from memory*/
 logic [7:0] PT_low, PT_high, AT_low, AT_high;	/* Wires as inputs to the shift registers */
 logic [7:0] PT_index;									/* index ofthe pattern table retrieved from the nametable */
 logic next_PT_low, next_PT_high;
@@ -53,7 +53,7 @@ if(reset)
 begin
 	state <= WAIT;
 	VRAM_addr <= 0;	
-	current_idx <= 1;
+	current_idx <= 2;
 	render_ready <= 0;
 end
 else
@@ -64,7 +64,7 @@ begin
 			shift_en <= 0;
 			load_PT_high <= 0;
 			load_PT_low <= 0;
-			current_idx <= 1;
+			current_idx <= 2;
 			scanline_done <= 0;
 			render_ready <= 1;
 		end
@@ -118,13 +118,13 @@ begin
 		end
 		FETCH_PT_LOW_2:begin
 			PT_in_low <= VRAM_data_in;
+			VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
 		end
 		FETCH_PT_HIGH_1:begin
-			VRAM_addr <= ({4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]} + 16'h8);
-			
+			PT_in_high <= VRAM_data_in;
+
 		end
 		FETCH_PT_HIGH_2:begin
-			PT_in_high <= VRAM_data_in;
 			load_PT_high <= 1;
 			load_PT_low <= 1;
 			current_idx <= current_idx + 6'b1;
@@ -134,7 +134,7 @@ begin
 			render_ready <= 0;
 				current_idx <= 0;
 			end
-			if(current_idx == 6'd0)
+			if(current_idx == 6'd1)
 				scanline_done <= 1;
 		
 		end

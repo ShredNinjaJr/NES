@@ -10,7 +10,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 								 output logic [7:0]  VGA_R,					//VGA Red
 							                VGA_G,					//VGA Green
 												 VGA_B,
-								 output logic FIFO_RE
+								 output logic [9:0] hc, vc
 										);		  
 								 
     // 800 horizontal pixels indexed 0 to 799
@@ -19,7 +19,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
     parameter [9:0] vlines = 10'b1000001100;
 	 
 	 // horizontal pixel and vertical line counters
-    logic [9:0] hc, vc;
+    
 	 // signal indicates if ok to display color for a pixel
 	 logic display;
 
@@ -93,16 +93,14 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 	
  always_comb
     begin:RGB_Display
-	  if ( (hc < 10'd4)|(hc >= 10'd260) | (vc >= 10'd240) )
+	  if ((hc >= 10'd256) | (vc >= 10'd240) )
 	  begin 
-			FIFO_RE = 0;
 			VGA_R = 8'h00; 
 			VGA_G = 8'h00;
 			VGA_B = 8'h00;
 	  end      
 	  else
 	  begin
-		FIFO_RE = 1;
 		case(palette_disp_idx)
 			 6'h00: {VGA_R, VGA_G, VGA_B} = {8'd84,8'd84,8'd84};  
           6'h01: {VGA_R, VGA_G, VGA_B} = {8'd0, 8'd30,8'd116};

@@ -11,12 +11,12 @@ output logic[w-1:0] data_out;
 reg [w-1:0] reg_array [2**n-1:0];
 initial
 begin
-    $readmemh("../ROMs/colors_chr.txt", reg_array);
+    $readmemh("../ROMs/mario_chr.txt", reg_array);
 end
 
 
 
 always @(negedge(clk)) begin
-    data_out = reg_array[addr];
+    data_out <= reg_array[addr];
 end
 endmodule  
