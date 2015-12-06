@@ -14,7 +14,8 @@ logic shift_en;
 logic [7:0] PT_in_low, PT_in_high;				/* temporary registers to hold the values fetched from memory*/
 logic [7:0] PT_index;								/* index ofthe pattern table retrieved from the nametable */
 logic next_AT_low, next_AT_high; 				/* 1 bit registers to hold the value of the AT*/
-
+logic [9:0] tile_num;
+assign tile_num = ((x_idx) >> 3) + 9'd2;
 logic [9:0] y_idx;
 assign y_idx = (x_idx < 9'd256) ? (scanline - 10'd1) : scanline;
 logic [15:0] temp_VRAM_addr;	/* Address for starting address of rendering */
@@ -59,7 +60,7 @@ begin
 			case(x_idx[2:0])
 				/* FETCH_NT_2 */
 				3'h0: begin
-					VRAM_addr <= temp_VRAM_addr + ((x_idx) >> 3) + 2;
+					VRAM_addr <= temp_VRAM_addr + tile_num;
 				end
 				3'h1: begin
 					PT_index <= VRAM_data_in;
@@ -69,7 +70,7 @@ begin
 				/* FETCH_AT_2 */
 				3'h3: begin
 			
-					unique case({y_idx[4], x_idx[4]})
+					unique case({y_idx[4], tile_num[1]})
 					
 					2'b11: begin
 						next_AT_high <= VRAM_data_in[7];
