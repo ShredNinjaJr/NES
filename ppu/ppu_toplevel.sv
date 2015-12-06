@@ -39,7 +39,7 @@ VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .
 
 //ppu_render render_block(.*, .render(render_frame), .VRAM_addr(vram_render_addr),  .VRAM_data_in(VRAM_data_out));
 
-ppu_bg bg_render (.*, .x_idx(hc) , .y_idx(vc), .VRAM_data_in(VRAM_data_out));
+ppu_bg bg_render (.*, .x_idx(hc) , .scanline(vc), .VRAM_data_in(VRAM_data_out));
 
 
 

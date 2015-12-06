@@ -93,7 +93,7 @@ module  vga_controller ( input        clk,       // 50 MHz clock
 	
  always_comb
     begin:RGB_Display
-	  if ((hc >= 10'd256) | (vc >= 10'd240) )
+	  if ((hc >= 10'd256) | (vc == 0) | (vc >= 10'd241) )
 	  begin 
 			VGA_R = 8'h00; 
 			VGA_G = 8'h00;
