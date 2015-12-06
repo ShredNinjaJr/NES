@@ -32,7 +32,7 @@ always begin : CLOCK_GENERATION
 #2 clk = ~clk;
 end
 
-initial begin: CLOCK_INITIALIZATION
+initial begin: CLOCK_INITIALIZATIONff
     clk = 0;
 end 
 

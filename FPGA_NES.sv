@@ -42,7 +42,7 @@ assign nres_in	= KEY[1];
 	logic nmi;
 assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
 	assign rdy = KEY[2];
-	//cpu_toplevel cpu_toplevel( .*);
+	cpu_toplevel cpu_toplevel( .*);
 	
    ppu_toplevel ppu_toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 	 

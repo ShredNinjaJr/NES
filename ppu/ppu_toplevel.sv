@@ -26,20 +26,19 @@ logic [7:0] VRAM_data_out, VRAM_data_in, palette_out, palette_data_in;
 logic VRAM_WE, palette_WE;
 logic [7:0] y_idx;
 logic [4:0] pixel;
-logic render, render_ready, scanline_done;
-logic render_frame;
 logic [4:0] palette_addr, palette_mem_addr;
-
 logic [9:0] hc, vc;
 logic show_bg;
-logic bg_pt_addr = 1;
+logic bg_pt_addr;
 logic spr_pt_addr;
+
+logic vblank;		/* Signal that determines whether ppu memory is safe to access from CPU*/
+
 
 VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .data_in(VRAM_data_in));
 
-//ppu_render render_block(.*, .render(render_frame), .VRAM_addr(vram_render_addr),  .VRAM_data_in(VRAM_data_out));
 
-ppu_bg bg_render (.*, .x_idx(hc) , .scanline(vc), .VRAM_data_in(VRAM_data_out));
+ppu_render ppu_render(.*, .VRAM_addr(vram_render_addr), .x_idx(hc) , .scanline(vc), .VRAM_data_in(VRAM_data_out));
 
 
 
@@ -55,13 +54,12 @@ ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(pp
 					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
 					.show_bg(show_bg),
 					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in),
-					.NMI_enable(NMI_enable) /*, .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr)*/);
+					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr));
 
 
-//assign render_frame = render & show_bg;
-assign render_frame = 1'b1;
-//assign VRAM_addr = (render_frame) ? vram_render_addr : ppu_reg_vram_addr;
-assign palette_mem_addr = (render_frame) ? pixel : palette_addr;
+assign vblank = (VGA_VS) ? 1'b0 : show_bg;
+assign VRAM_addr = (vblank) ?  ppu_reg_vram_addr : vram_render_addr;
+assign palette_mem_addr = (vblank) ? palette_addr : pixel;
 					
 
 
