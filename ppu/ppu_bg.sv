@@ -3,7 +3,7 @@ module ppu_bg
 	input clk, reset, 
 	input [7:0] VRAM_data_in,
 	output logic [15:0] VRAM_addr,
-	output logic [4:0] pixel,		/* Palette address for the pixel */
+	output logic [3:0] pixel,		/* Palette address for the pixel */
 	input [9:0] x_idx,
 	input [9:0] scanline,
 	input bg_pt_addr
@@ -26,7 +26,7 @@ logic [5:0] AT_idx;		/* register to hold the value of AT index */
 logic [15:0] PT_low_reg, PT_high_reg;
 logic [8:0] AT_low_reg, AT_high_reg;
 
-assign pixel = {1'b0, AT_high_reg[0], AT_low_reg[0], PT_high_reg[0], PT_low_reg[0]};
+assign pixel = { AT_high_reg[0], AT_low_reg[0], PT_high_reg[0], PT_low_reg[0]};
 
 always_ff @ (posedge clk, posedge reset)
 begin

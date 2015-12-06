@@ -11,8 +11,8 @@ module ppu_render
 	input bg_pt_addr, spr_pt_addr
 );
 
-ppu_bg bg_render(.*);
+ppu_bg bg_render(.*, .pixel(pixel[3:0]));
 
-
+assign pixel[4] = 1'b0;
 
 endmodule
