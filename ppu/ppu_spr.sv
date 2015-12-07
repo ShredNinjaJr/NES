@@ -14,7 +14,7 @@ logic p_oam_WE, s_oam_WE;
 logic [7:0] p_oam_data_in, p_oam_data_out, s_oam_data_in, s_oam_data_out;
 logic [7:0] p_oam_addr;
 logic [4:0] s_oam_addr;
-logic [3:0] s_oam_idx;
+logic [2:0] s_oam_idx;
 logic [5:0] n;		/* counter for the sprite number */
 logic [1:0] m;		/* byte number */
 logic [9:0] y_idx;
@@ -27,7 +27,7 @@ logic [2:0] sprite_y; /* Row number inside the sprite */
 
 logic spr0_found;	/* Flag that asserts that spr0 is on this scanline */
 
-
+logic [7:0] spr_tile_num;
 /* Shift registers, counters and latches for the 8 sprites on the scanline */
 logic [7:0] spr_bmp_low[7:0];		/* Bitmap of lower bytes */
 logic [7:0] spr_bmp_high[7:0];	/* Bitmap of higher bytes */
@@ -59,6 +59,7 @@ begin
 		m <= 0;
 		s_oam_idx <= 0;
 		spr0_found <= 0;
+		spr_tile_num <= 0;
 	end
 	else
 	begin
@@ -89,13 +90,19 @@ begin
 			end
 		end
 		/* Cycles 64-256: Sprite evaluation */
-		else if(x_idx >= 10'd64 && x_idx <= 10'd256)
+		else if(x_idx >= 10'd64 && x_idx < 10'd256)
 		begin: Sprite_evaluation
+			if(x_idx == 10'd255)
+			begin
+					s_oam_idx <= 0;
+					m <= 0;
+			end
+			
 			if(x_idx[0])	/* on odd cycles write to secondary OAM */
 			begin: odd_cycle
 				 case (state)
 					READ_Y: begin
-						s_oam_addr <= {s_oam_idx[2:0], m};
+						s_oam_addr <= {s_oam_idx, m};
 						s_oam_data_in <= p_oam_data_out;
 						s_oam_WE <= 1;
 						
@@ -122,7 +129,7 @@ begin
 						if( m == 2'd3)
 						begin
 							n <= n+ 6'd1;
-							s_oam_idx <= s_oam_idx + 4'd1;
+							s_oam_idx <= s_oam_idx + 3'd1;
 						end
 					end
 					
@@ -143,7 +150,7 @@ begin
 						else
 						begin
 							n <= n + 6'd1;
-							m <= m + 6'd1; /* Hardware bug that incorrectly checks for overflow */
+							m <= m + 2'd1; /* Hardware bug that incorrectly checks for overflow */
 						end
 							
 					end
@@ -166,71 +173,49 @@ begin
 				/* FETCH_NT_2 */
 				3'h0: begin
 					VRAM_addr <= 0;
-					s_oam_idx <= 0;
-					s_oam_addr <= 0;
+					s_oam_addr <= {s_oam_idx, 2'd1};
 					
 				end
 				3'h1: begin
-					PT_index <= VRAM_data_in;
-					AT_idx <= {VRAM_addr[9:7], VRAM_addr[4:2]};
+					spr_tile_num <= s_oam_data_out;
+					s_oam_addr <= {s_oam_idx, 2'd2};
 				end
-				 3'h2:	VRAM_addr <= 16'h23C0 +  AT_idx;
+				 3'h2:	begin
+					spr_attr[s_oam_idx] <= s_oam_data_out;
+					s_oam_addr <= {s_oam_idx, 2'd3};
+				 end
+				 
 				/* FETCH_AT_2 */
 				3'h3: begin
-			
-					unique case({y_idx[4], tile_num[1]})
+					/* If it is sprite 0, set attr bit 2 to 1 */
+					if(spr0_found)
+						spr_attr[s_oam_idx][2] <= 1'b1;
+					else
+						spr_attr[s_oam_idx][2] <= 1'b0;
+					spr_x_pos[s_oam_idx] <= s_oam_data_out;
 					
-					2'b11: begin
-						next_AT_high <= VRAM_data_in[7];
-						next_AT_low <= VRAM_data_in[6];
-					end
-					2'b10: begin
-						next_AT_high <= VRAM_data_in[5];
-						next_AT_low <= VRAM_data_in[4];
-					end
-					2'b01: begin
-						next_AT_high <= VRAM_data_in[3];
-						next_AT_low <= VRAM_data_in[2];
-					end
-					2'b00: begin
-						next_AT_high <= VRAM_data_in[1];
-						next_AT_low <= VRAM_data_in[0];
-					end
-					endcase
 				end
 				3'h4:begin
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
+					VRAM_addr <= {4'b0, spr_pt_addr, spr_tile_num, 1'b0, y_idx[2:0]};
 				end
 				/* FETCH_PT_LOW_2 */	
 				3'h5:begin
-					PT_in_low <= VRAM_data_in;
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
+					if(spr_tile_num == 8'hFF)
+						spr_bmp_low[s_oam_idx] <= 8'h0;
+					else
+						spr_bmp_low[s_oam_idx] <= VRAM_data_in;
+						
+					VRAM_addr <= {4'b0, bg_pt_addr, spr_tile_num, 1'b1, y_idx[2:0]};
 				end
 				
 				3'h6:begin
-					PT_in_high <= VRAM_data_in;
+					if(spr_tile_num == 8'hFF)
+						spr_bmp_high[s_oam_idx] <= 8'h0;
+					else
+						spr_bmp_high[s_oam_idx] <= VRAM_data_in;
 				end
 				3'h7: begin
-					/* load the registers */
-					PT_low_reg[8] <= PT_in_low[7];
-					PT_high_reg[8] <= PT_in_high[7];
-					PT_low_reg[9] <= PT_in_low[6];
-					PT_high_reg[9] <= PT_in_high[6];
-					PT_low_reg[10] <= PT_in_low[5];
-					PT_high_reg[10] <= PT_in_high[5];
-					PT_low_reg[11] <= PT_in_low[4];
-					PT_high_reg[11] <= PT_in_high[4];
-					PT_low_reg[12] <= PT_in_low[3];
-					PT_high_reg[12] <= PT_in_high[3];
-					PT_low_reg[13] <= PT_in_low[2];
-					PT_high_reg[13] <= PT_in_high[2];
-					PT_low_reg[14] <= PT_in_low[1];
-					PT_high_reg[14] <= PT_in_high[1];
-					PT_low_reg[15] <= PT_in_low[0];
-					PT_high_reg[15] <= PT_in_high[0];
-					
-					AT_high_reg[8] <= next_AT_high;
-					AT_low_reg[8] <= next_AT_low;
+					s_oam_idx <= s_oam_idx + 3'd1;
 				end
 				
 			endcase
@@ -261,9 +246,9 @@ begin: next_state_logic
 			INC_N: begin
 				if(n == 6'd0)
 					next_state = IDLE;
-				if(s_oam_idx < 4'd7)
+				if(s_oam_idx < 3'd7)
 					next_state = READ_Y;
-				else if(s_oam_idx == 4'd7)
+				else if(s_oam_idx == 3'd7)
 					next_state = EVAL_SPR;
 			end
 			
