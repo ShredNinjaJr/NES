@@ -22,7 +22,7 @@ assign y_idx = (scanline);
 assign p_oam_addr = {n,m};
 /* Checks if sprite is in range */
 logic spr_in_range;
-assign spr_in_range = (y_idx >= p_oam_data_out) && (y_idx < (10'd8 + p_oam_data_out))
+assign spr_in_range = (y_idx >= p_oam_data_out) && (y_idx < (10'd8 + p_oam_data_out));
 logic [2:0] sprite_y; /* Row number inside the sprite */
 
 logic spr0_found;	/* Flag that asserts that spr0 is on this scanline */
@@ -35,7 +35,7 @@ logic [7:0] spr_attr[7:0];			/* attributes of sprite */
 logic [7:0] spr_x_pos[7:0];		/* X position of sprites */
 
 /* states for sprites evaluation */
-enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state
+enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state;
 
 /* Primary OAM*/
 RAM #(.width(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
@@ -196,23 +196,61 @@ begin
 					
 				end
 				3'h4:begin
-					VRAM_addr <= {4'b0, spr_pt_addr, spr_tile_num, 1'b0, y_idx[2:0]};
+				/* If vertically flipped, get a different sliver */
+				if(spr_attr[spr_oam_idx][7] == 1'b1)
+					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
+				else
+					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, y_idx[2:0]};
 				end
 				/* FETCH_PT_LOW_2 */	
 				3'h5:begin
 					if(spr_tile_num == 8'hFF)
 						spr_bmp_low[s_oam_idx] <= 8'h0;
 					else
-						spr_bmp_low[s_oam_idx] <= VRAM_data_in;
+					begin
+						/* Flip a tile horizontally if needed */
+						if(spr_attr[spr_oam_idx][6] == 1'b1)
+						begin
+							spr_bmp_low[s_oam_idx][7] <= VRAM_data_in[0];
+							spr_bmp_low[s_oam_idx][6] <= VRAM_data_in[1];
+							spr_bmp_low[s_oam_idx][5] <= VRAM_data_in[2];
+							spr_bmp_low[s_oam_idx][4] <= VRAM_data_in[3];
+							spr_bmp_low[s_oam_idx][3] <= VRAM_data_in[4];
+							spr_bmp_low[s_oam_idx][2] <= VRAM_data_in[5];
+							spr_bmp_low[s_oam_idx][1] <= VRAM_data_in[6];
+							spr_bmp_low[s_oam_idx][0] <= VRAM_data_in[7];
+						end
+						else
+							spr_bmp_low[s_oam_idx] <= VRAM_data_in;
+					end
 						
-					VRAM_addr <= {4'b0, bg_pt_addr, spr_tile_num, 1'b1, y_idx[2:0]};
+					if(spr_attr[spr_oam_idx][7] == 1'b1)
+						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
+					else
+						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b1, y_idx[2:0]};
+				end
 				end
 				
 				3'h6:begin
 					if(spr_tile_num == 8'hFF)
 						spr_bmp_high[s_oam_idx] <= 8'h0;
 					else
+					begin
+						if(spr_attr[spr_oam_idx][6] == 1'b1)
+						begin
+							spr_bmp_high[s_oam_idx][7] <= VRAM_data_in[0];
+							spr_bmp_high[s_oam_idx][6] <= VRAM_data_in[1];
+							spr_bmp_high[s_oam_idx][5] <= VRAM_data_in[2];
+							spr_bmp_high[s_oam_idx][4] <= VRAM_data_in[3];
+							spr_bmp_high[s_oam_idx][3] <= VRAM_data_in[4];
+							spr_bmp_high[s_oam_idx][2] <= VRAM_data_in[5];
+							spr_bmp_high[s_oam_idx][1] <= VRAM_data_in[6];
+							spr_bmp_high[s_oam_idx][0] <= VRAM_data_in[7];
+						end
+						else
 						spr_bmp_high[s_oam_idx] <= VRAM_data_in;
+					end
+					
 				end
 				3'h7: begin
 					s_oam_idx <= s_oam_idx + 3'd1;
@@ -249,7 +287,7 @@ begin: next_state_logic
 				if(s_oam_idx < 3'd7)
 					next_state = READ_Y;
 				else if(s_oam_idx == 3'd7)
-					next_state = EVAL_SPR;
+					next_state = SPR_OVERFLOW;
 			end
 			
 			SPR_OVERFLOW: begin
