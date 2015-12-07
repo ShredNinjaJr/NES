@@ -7,7 +7,7 @@ module ppu_spr
 	output logic [3:0] pixel,
 	input [9:0] x_idx,
 	input [9:0] scanline,
-	output logic spr0_hit
+	output logic spr0_hit, spr_overflow
 );
 
 logic p_oam_WE, s_oam_WE;
@@ -18,10 +18,25 @@ logic [3:0] s_oam_idx;
 logic [5:0] n;		/* counter for the sprite number */
 logic [1:0] m;		/* byte number */
 logic [9:0] y_idx;
-assign y_idx = (scanline - 10'd1);
+assign y_idx = (scanline);
 assign p_oam_addr = {n,m};
-
+/* Checks if sprite is in range */
+logic spr_in_range;
+assign spr_in_range = (y_idx >= p_oam_data_out) && (y_idx < (10'd8 + p_oam_data_out))
 logic [2:0] sprite_y; /* Row number inside the sprite */
+
+logic spr0_found;	/* Flag that asserts that spr0 is on this scanline */
+
+
+/* Shift registers, counters and latches for the 8 sprites on the scanline */
+logic [7:0] spr_bmp_low[7:0];		/* Bitmap of lower bytes */
+logic [7:0] spr_bmp_high[7:0];	/* Bitmap of higher bytes */
+logic [7:0] spr_attr[7:0];			/* attributes of sprite */
+logic [7:0] spr_x_pos[7:0];		/* X position of sprites */
+
+/* states for sprites evaluation */
+enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state
+
 /* Primary OAM*/
 RAM #(.width(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
 					.data_out(p_oam_data_out), .addr(p_oam_addr));
@@ -30,6 +45,7 @@ RAM #(.width(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
 RAM #(.width(8), .n(5)) s_oam (.*, .WE(s_oam_WE), .data_in(s_oam_data_in),
 					.data_out(s_oam_data_out), .addr(s_oam_addr));
 
+			
 always_ff @ (posedge clk, posedge reset)
 begin
 	if(reset)
@@ -42,13 +58,19 @@ begin
 		n <= 0;
 		m <= 0;
 		s_oam_idx <= 0;
+		spr0_found <= 0;
 	end
 	else
 	begin
 		s_oam_WE <= 0;
+		state <= next_state;
 		/* Clear spr0_hit at prerender scanline */
 		if(scanline == 10'd0 && x_idx == 10'd0)
+		begin
 			spr0_hit <= 0;
+			spr_overflow <= 0;
+			spr0_found <= 0;
+		end
 		
 		/* for the first 64 cycles, initialize the secondary OAM to $FF */
 		if(x_idx < 10'd64)
@@ -56,10 +78,13 @@ begin
 			s_oam_addr <= x_idx[5:1];
 			s_oam_data_in <= 8'hff;
 			s_oam_WE <= 1;
+			s_oam_idx <= 0;
 			
+			/* Reset parameters for the next stage */
 			if(x_idx == 10'd63)
 			begin
 				n <= 0;
+				state <= IDLE;
 				m <= 0;
 			end
 		end
@@ -68,39 +93,187 @@ begin
 		begin: Sprite_evaluation
 			if(x_idx[0])	/* on odd cycles write to secondary OAM */
 			begin: odd_cycle
-
-					s_oam_addr <= {s_oam_idx[2:0], m};
-					s_oam_data_in <= p_oam_data_out;
-					s_oam_WE <= 1;
-					
-					if( m != 2'd0)	/* Copy the remaining OAM bytes if in range */
-						m <= m + 1;
-						if( m == 2'd3)
-							n <= n+1;
-					else
-					begin
-						/* If y coordinate is within 8 scanlines, copy the rest */
-						if((y_idx >= p_oam_data_out) && (y_idx < (10'd8 + p_oam_data_out)))
+				 case (state)
+					READ_Y: begin
+						s_oam_addr <= {s_oam_idx[2:0], m};
+						s_oam_data_in <= p_oam_data_out;
+						s_oam_WE <= 1;
+						
+						if(spr_in_range)
 						begin
-							m <= m + 1;
+							m <= m+ 2'd1;
 						end
 						else
 						begin
-							n <= n+ 1;
+							n <= n + 6'd1;
 							m <= 0;
 						end
 					end
-			
-					/* If m is not 0, the sprite is in range, copy the remaining bytes */
 					
-				end:odd_cycle
-				else/* on even cycle, wait for primary OAM read */
-				begin: even_cycle
-					;
-				end:even_cycle
+					COPY_SPR: begin
+						/* If fetching 0th sprite, set spr0 hit */
+						if( n == 6'd0)
+							spr0_found <= 1;
+							
+						s_oam_addr <= {s_oam_idx[2:0], m};
+						s_oam_data_in <= p_oam_data_out;
+						s_oam_WE <= 1;
+						m <= m+ 2'd1;
+						if( m == 2'd3)
+						begin
+							n <= n+ 6'd1;
+							s_oam_idx <= s_oam_idx + 4'd1;
+						end
+					end
+					
+					INC_N: begin
+						;
+					end
+					
+					/* checks for extra sprites */
+					SPR_OVERFLOW: begin
+						if(spr_in_range)
+						begin
+							spr_overflow <= 1;
+							m <= m + 2'd1;
+							if( m == 2'd3)
+								n <= n + 6'd1;
+															
+						end
+						else
+						begin
+							n <= n + 6'd1;
+							m <= m + 6'd1; /* Hardware bug that incorrectly checks for overflow */
+						end
+							
+					end
+					
+					default: ;
+				
+				endcase
+			end:odd_cycle
+			else/* on even cycle, wait for primary OAM read */
+			begin: even_cycle
+				;
+			end:even_cycle
 			
 		end: Sprite_evaluation
+		
+		if(x_idx >= 256 && x_idx < 320)
+		begin: Sprite_fetch
+			/* Fetch the name table entries in the secondary OAM */
+			case(x_idx[2:0])
+				/* FETCH_NT_2 */
+				3'h0: begin
+					VRAM_addr <= 0;
+					s_oam_idx <= 0;
+					s_oam_addr <= 0;
+					
+				end
+				3'h1: begin
+					PT_index <= VRAM_data_in;
+					AT_idx <= {VRAM_addr[9:7], VRAM_addr[4:2]};
+				end
+				 3'h2:	VRAM_addr <= 16'h23C0 +  AT_idx;
+				/* FETCH_AT_2 */
+				3'h3: begin
+			
+					unique case({y_idx[4], tile_num[1]})
+					
+					2'b11: begin
+						next_AT_high <= VRAM_data_in[7];
+						next_AT_low <= VRAM_data_in[6];
+					end
+					2'b10: begin
+						next_AT_high <= VRAM_data_in[5];
+						next_AT_low <= VRAM_data_in[4];
+					end
+					2'b01: begin
+						next_AT_high <= VRAM_data_in[3];
+						next_AT_low <= VRAM_data_in[2];
+					end
+					2'b00: begin
+						next_AT_high <= VRAM_data_in[1];
+						next_AT_low <= VRAM_data_in[0];
+					end
+					endcase
+				end
+				3'h4:begin
+					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
+				end
+				/* FETCH_PT_LOW_2 */	
+				3'h5:begin
+					PT_in_low <= VRAM_data_in;
+					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
+				end
+				
+				3'h6:begin
+					PT_in_high <= VRAM_data_in;
+				end
+				3'h7: begin
+					/* load the registers */
+					PT_low_reg[8] <= PT_in_low[7];
+					PT_high_reg[8] <= PT_in_high[7];
+					PT_low_reg[9] <= PT_in_low[6];
+					PT_high_reg[9] <= PT_in_high[6];
+					PT_low_reg[10] <= PT_in_low[5];
+					PT_high_reg[10] <= PT_in_high[5];
+					PT_low_reg[11] <= PT_in_low[4];
+					PT_high_reg[11] <= PT_in_high[4];
+					PT_low_reg[12] <= PT_in_low[3];
+					PT_high_reg[12] <= PT_in_high[3];
+					PT_low_reg[13] <= PT_in_low[2];
+					PT_high_reg[13] <= PT_in_high[2];
+					PT_low_reg[14] <= PT_in_low[1];
+					PT_high_reg[14] <= PT_in_high[1];
+					PT_low_reg[15] <= PT_in_low[0];
+					PT_high_reg[15] <= PT_in_high[0];
+					
+					AT_high_reg[8] <= next_AT_high;
+					AT_low_reg[8] <= next_AT_low;
+				end
+				
+			endcase
+		end: Sprite_fetch
 	end
+end
+
+
+always_comb
+begin: next_state_logic
+	next_state = state;
+		unique case (state)
+		
+			IDLE: begin 
+				if(x_idx == 10'd63)
+					next_state = READ_Y;
+			end
+			READ_Y: begin
+				if(spr_in_range)
+					next_state = COPY_SPR;
+			end
+			
+			COPY_SPR: begin
+				if(m == 2'd3)
+					next_state = READ_Y;
+			end
+			
+			INC_N: begin
+				if(n == 6'd0)
+					next_state = IDLE;
+				if(s_oam_idx < 4'd7)
+					next_state = READ_Y;
+				else if(s_oam_idx == 4'd7)
+					next_state = EVAL_SPR;
+			end
+			
+			SPR_OVERFLOW: begin
+				if(spr_in_range)
+					next_state = IDLE;
+			end
+			
+		
+		endcase
 end
 
 endmodule
