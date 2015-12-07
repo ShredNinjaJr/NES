@@ -274,11 +274,13 @@ begin: next_state_logic
 			READ_Y: begin
 				if(spr_in_range)
 					next_state = COPY_SPR;
+				else
+					next_state = INC_N;
 			end
 			
 			COPY_SPR: begin
 				if(m == 2'd3)
-					next_state = READ_Y;
+					next_state = INC_N;
 			end
 			
 			INC_N: begin
