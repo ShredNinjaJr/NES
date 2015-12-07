@@ -37,12 +37,13 @@ logic [7:0] spr_x_pos[7:0];		/* X position of sprites */
 /* states for sprites evaluation */
 enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state;
 
+assign p_oam_WE = 0;
 /* Primary OAM*/
-RAM #(.width(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
+RAM #(.w(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
 					.data_out(p_oam_data_out), .addr(p_oam_addr));
 					
 /* Secondary OAM */
-RAM #(.width(8), .n(5)) s_oam (.*, .WE(s_oam_WE), .data_in(s_oam_data_in),
+RAM #(.w(8), .n(5)) s_oam (.*, .WE(s_oam_WE), .data_in(s_oam_data_in),
 					.data_out(s_oam_data_out), .addr(s_oam_addr));
 
 			
@@ -60,6 +61,7 @@ begin
 		s_oam_idx <= 0;
 		spr0_found <= 0;
 		spr_tile_num <= 0;
+		state <= IDLE;
 	end
 	else
 	begin
@@ -85,7 +87,6 @@ begin
 			if(x_idx == 10'd63)
 			begin
 				n <= 0;
-				state <= IDLE;
 				m <= 0;
 			end
 		end
@@ -197,7 +198,7 @@ begin
 				end
 				3'h4:begin
 				/* If vertically flipped, get a different sliver */
-				if(spr_attr[spr_oam_idx][7] == 1'b1)
+				if(spr_attr[s_oam_idx][7] == 1'b1)
 					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
 				else
 					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, y_idx[2:0]};
@@ -209,7 +210,7 @@ begin
 					else
 					begin
 						/* Flip a tile horizontally if needed */
-						if(spr_attr[spr_oam_idx][6] == 1'b1)
+						if(spr_attr[s_oam_idx][6] == 1'b1)
 						begin
 							spr_bmp_low[s_oam_idx][7] <= VRAM_data_in[0];
 							spr_bmp_low[s_oam_idx][6] <= VRAM_data_in[1];
@@ -224,11 +225,10 @@ begin
 							spr_bmp_low[s_oam_idx] <= VRAM_data_in;
 					end
 						
-					if(spr_attr[spr_oam_idx][7] == 1'b1)
+					if(spr_attr[s_oam_idx][7] == 1'b1)
 						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
 					else
 						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b1, y_idx[2:0]};
-				end
 				end
 				
 				3'h6:begin
@@ -236,7 +236,7 @@ begin
 						spr_bmp_high[s_oam_idx] <= 8'h0;
 					else
 					begin
-						if(spr_attr[spr_oam_idx][6] == 1'b1)
+						if(spr_attr[s_oam_idx][6] == 1'b1)
 						begin
 							spr_bmp_high[s_oam_idx][7] <= VRAM_data_in[0];
 							spr_bmp_high[s_oam_idx][6] <= VRAM_data_in[1];
@@ -284,7 +284,7 @@ begin: next_state_logic
 			INC_N: begin
 				if(n == 6'd0)
 					next_state = IDLE;
-				if(s_oam_idx < 3'd7)
+				else if(s_oam_idx < 3'd7)
 					next_state = READ_Y;
 				else if(s_oam_idx == 3'd7)
 					next_state = SPR_OVERFLOW;
@@ -294,9 +294,9 @@ begin: next_state_logic
 				if(spr_in_range)
 					next_state = IDLE;
 			end
-			
+			default: next_state = IDLE;
 		
 		endcase
-end
+end:next_state_logic
 
 endmodule

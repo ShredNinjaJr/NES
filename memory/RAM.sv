@@ -8,7 +8,11 @@ output logic[w-1:0] data_out
 // Start module here!
 reg [w-1:0] reg_array [2**n-1:0];
 
-
+initial 
+begin
+	for(int i = 0; i < 2**n; i++)
+		reg_array[i] = i;
+end
 always @(negedge(clk)) begin
     if( WE == 1 )
         reg_array[addr] <= data_in;

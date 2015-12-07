@@ -31,7 +31,7 @@ logic [9:0] hc, vc;
 logic show_bg;
 logic bg_pt_addr;
 logic spr_pt_addr;
-
+logic spr0_hit, spr_overflow;
 logic vblank;		/* Signal that determines whether ppu memory is safe to access from CPU*/
 
 
