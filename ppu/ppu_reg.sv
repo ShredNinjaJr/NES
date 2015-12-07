@@ -109,7 +109,7 @@ parameter PPUSCROLL = 3'd5;
 parameter PPUADDR = 3'd6;
 parameter PPUDATA = 3'd7;
 
-
+logic vram_inc;
 logic vblank_start, vblank_clear;
 logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
 logic vblank_start_reg;
@@ -125,6 +125,8 @@ begin
 		vblank_start <= 1;
 end
 
+assign palette_mem_addr = vram_addr_out[4:0];
+
 always_ff @(posedge clk, posedge reset)
 begin
 	if(reset)
@@ -137,7 +139,6 @@ begin
 		show_bg <= 0;
 		palette_data_out <= 0;
 		palette_WE <= 0;
-		palette_mem_addr <= 0;
 	end
 	else
 	begin
@@ -149,6 +150,11 @@ begin
 		oam_WE <= 0;
 		if(~cs_in & cs_in_reg)
 		begin:Chipselect
+			if(vram_inc)
+					begin
+						vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
+						vram_inc <= 0;
+					end
 			case(reg_addr)
 				
 				PPUCTRL:begin
@@ -197,7 +203,7 @@ begin
 				PPUDATA:begin
 					if(vram_addr_out[13:8] == 6'h3F)
 					begin
-						palette_mem_addr <= vram_addr_out[4:0];
+
 						palette_WE <= WE;
 						palette_data_out <= cpu_data_in;
 						cpu_data_out <= palette_data_in;
@@ -216,7 +222,7 @@ begin
 							cpu_data_out <= vram_data_out;
 						end
 					end
-					vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
+					vram_inc <= 1;					
 				end
 				
 			endcase

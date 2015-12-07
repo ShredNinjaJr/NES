@@ -19,7 +19,7 @@ assign data_out = mem_array[addr];
 
 			
 
-always_ff @ (posedge clk or posedge reset)
+always_ff @ (negedge clk or posedge reset)
 begin
 	if(reset)
 	begin
