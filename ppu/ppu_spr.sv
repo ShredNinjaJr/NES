@@ -33,6 +33,7 @@ logic [7:0] spr_bmp_low[7:0];		/* Bitmap of lower bytes */
 logic [7:0] spr_bmp_high[7:0];	/* Bitmap of higher bytes */
 logic [7:0] spr_attr[7:0];			/* attributes of sprite */
 logic [7:0] spr_x_pos[7:0];		/* X position of sprites */
+logic spr_bmp_shift[7:0];			/* If x position is 0, shift sprites */
 
 /* states for sprites evaluation */
 enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state;
@@ -55,6 +56,7 @@ begin
 		p_oam_data_in <= 0;
 		s_oam_addr <= 0;
 		s_oam_data_in <= 0;
+		p_oam_data_in <= 0;
 		spr0_hit <= 0;
 		n <= 0;
 		m <= 0;
@@ -89,10 +91,52 @@ begin
 				n <= 0;
 				m <= 0;
 			end
+			
+			/* Every cycle decrement the xposition of all 8 sprite_x_pos */
+			for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
+			begin
+				if(spr_x_pos[i] != 8'd0)
+					spr_x_pos[i] <= spr_x_pos[i] - 8'd1;
+				else	/* If it is zero begin shifting the bitmaps */
+					spr_bmp_shift[i] <= 1'b1;
+			end
+			
+			/* Shift the bmps if high */
+			for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
+			begin
+				if(spr_bmp_shift[i])
+				begin
+					spr_bmp_low[i] <= {spr_bmp_low[i][6:0], 1'b0};
+					spr_bmp_high[i] <= {spr_bmp_high[i][6:0], 1'b0};
+				end
+			end
 		end
 		/* Cycles 64-256: Sprite evaluation */
 		else if(x_idx >= 10'd64 && x_idx < 10'd256)
 		begin: Sprite_evaluation
+		
+		
+			/* Every cycle decrement the xposition of all 8 sprite_x_pos */
+			for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
+			begin
+				if(spr_x_pos[i] != 8'd0)
+					spr_x_pos[i] <= spr_x_pos[i] - 8'd1;
+				else	/* If it is zero begin shifting the bitmaps */
+					spr_bmp_shift[i] <= 1'b1;
+			end
+			
+			/* Shift the bmps if high */
+			for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
+			begin
+				if(spr_bmp_shift[i])
+				begin
+					spr_bmp_low[i] <= {spr_bmp_low[i][6:0], 1'b0};
+					spr_bmp_high[i] <= {spr_bmp_high[i][6:0], 1'b0};
+				end
+			end
+			
+			
+			
 			if(x_idx == 10'd255)
 			begin
 					s_oam_idx <= 0;
@@ -279,12 +323,12 @@ begin: next_state_logic
 			end
 			
 			COPY_SPR: begin
-				if(m == 2'd3)
+				if(m == 2'd3 & x_idx[0])
 					next_state = INC_N;
 			end
 			
 			INC_N: begin
-				if(n == 6'd0)
+				if(n == 6'd0 & m == 2'd0)
 					next_state = IDLE;
 				else if(s_oam_idx < 3'd7)
 					next_state = READ_Y;
@@ -300,5 +344,25 @@ begin: next_state_logic
 		
 		endcase
 end:next_state_logic
+
+
+always_ff @(posedge clk, posedge reset)
+begin: Sprite_rendering
+	if(reset)
+	begin
+		;
+	end
+	else
+	begin
+		if(x_idx < 10'd256)
+		begin
+
+		end
+		
+	end
+
+end: Sprite_rendering
+
+assign pixel = {spr_attr[0][1:0], spr_bmp_high[0][7], spr_bmp_low[0][7]};
 
 endmodule

@@ -13,9 +13,9 @@ begin
 	for(int i = 0; i < 2**n; i++)
 		reg_array[i] = i;
 end
+assign data_out = reg_array[addr];
 always @(negedge(clk)) begin
     if( WE == 1 )
         reg_array[addr] <= data_in;
-    data_out <= reg_array[addr];
 end
 endmodule  

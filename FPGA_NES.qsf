@@ -593,7 +593,6 @@ set_global_assignment -name EDA_TEST_BENCH_NAME FIFO_testbench -section_id eda_s
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id FIFO_testbench
 set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "400 ns" -section_id FIFO_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME FIFO_testbench -section_id FIFO_testbench
-set_global_assignment -name SYSTEMVERILOG_FILE cpu/cpu6502.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ppu/ppu_render.sv
 set_global_assignment -name SYSTEMVERILOG_FILE testbenches/vram_testbench.sv
 set_global_assignment -name SYSTEMVERILOG_FILE memory/VRAM.sv
