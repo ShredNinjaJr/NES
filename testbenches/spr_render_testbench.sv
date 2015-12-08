@@ -9,28 +9,32 @@ timeprecision 1ns;
 // These signals are internal because the processor will be 
 // instantiated as a submodule in testbench.
 logic clk = 0;	
-logic reset;
-logic [7:0] VRAM_data_in;
-logic [15:0] VRAM_addr;
-logic [9:0] x_idx, scanline;
-logic spr_pt_addr = 0;
-logic spr0_hit, spr_overflow;
-logic [3:0] pixel;
 
-ppu_spr spr(.*);
+logic reset;
+	logic vram_WE, ppu_reg_cs;
+	logic [7:0] cpu_data_in;
+	logic [7:0] cpu_data_out;
+	logic [2:0] ppu_reg_addr; 
+	logic [7:0]  VGA_R,			//VGA Red
+					 VGA_G,					//VGA Green
+					 VGA_B;					//VGA Blue
+ logic  VGA_CLK,				//VGA Clock
+					 VGA_SYNC_N,			//VGA Sync signal
+					 VGA_BLANK_N,			//VGA Blank signal
+					 VGA_VS,					//VGA vertical sync signal	
+					 VGA_HS,					//VGA horizontal sync signal
+					 NMI_enable;
+ppu_toplevel spr(.*);
 	
 // Toggle the clock
 // #1 means wait for a delay of 1 timeunit
 always begin : CLOCK_GENERATION
 #2 clk = ~clk;
 
-#2 x_idx = x_idx + 1;
-
 end
 
 initial begin: CLOCK_INITIALIZATIONff
     clk = 0;
-	 scanline = 0;
 end 
 
 // Testing begins here
@@ -43,11 +47,6 @@ initial begin: TEST_VECTORS
 
 #2 reset = 0;
 
-
-#2 x_idx = 0;
-
-
-	
 
 end
 endmodule
