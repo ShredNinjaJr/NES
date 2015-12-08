@@ -12,7 +12,10 @@ module cpu_toplevel
 	input [7:0] vram_data_in,
 	output logic ppu_reg_cs,			/* Chip select for ppu registers. Active low */ 
 	output reg [7:0]		acc, instr,
-   output logic [15:0]    pc
+   output logic [15:0]    pc,
+	input [7:0] keycode,
+	input keypress,
+	output logic [7:0] keystates
 );
 
 logic [7:0] wram_data_in, wram_data_out;
@@ -38,6 +41,6 @@ cpu cpu(
   .PC(pc)
  );
 
-WRAM WRAM(.*, .addr(wram_addr), .WE(~wram_WE), .data_out(wram_data_in), .data_in(wram_data_out));
+WRAM WRAM(.*, .addr(wram_addr), .WE(~wram_WE), .data_out(wram_data_in), .data_in(wram_data_out), .keycode(keycode), .keypress(keypress));
 
 endmodule

@@ -1,14 +1,15 @@
 /* WRAM used by the CPU */
 
-module WRAM(clk, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE);
+module WRAM(clk, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE, keycode, keypress, keystates);
 
-input clk, WE;
+input clk, WE, keypress;
 input [15:0] addr;
 input [7:0] data_in, vram_data_in;
 output logic[7:0] data_out, vram_data_out;
 output logic ppu_reg_cs, vram_WE;
 output logic [2:0] ppu_reg_addr;
-
+input [7:0] keycode;
+output logic [7:0] keystates;
 /* module begin */
 logic [10:0] CPU_RAM_addr;
 logic [14:0] PRG_ROM_addr;
