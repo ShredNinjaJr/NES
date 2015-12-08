@@ -12,7 +12,8 @@ module  FPGA_NES		( input         CLOCK_50,
 							                VGA_SYNC_N,			//VGA Sync signal
 												 VGA_BLANK_N,			//VGA Blank signal
 												 VGA_VS,					//VGA virtical sync signal	
-												 VGA_HS				//VGA horizontal sync signal
+												 VGA_HS,				//VGA horizontal sync signal
+							 input PS2_KBCLK, PS2_KBDAT
 											);
     
     logic clk, reset;
@@ -32,7 +33,7 @@ module  FPGA_NES		( input         CLOCK_50,
 	
 	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = pc;
 	assign {hex_4[5], hex_4[4]} = instr;
-	assign {hex_4[7], hex_4[6]} = acc;
+	
 	logic NMI_enable;
 	logic nres_in;
 assign nres_in	= KEY[1];
@@ -41,8 +42,17 @@ assign nres_in	= KEY[1];
 	logic [7:0] vram_data_out, vram_data_in;
 	logic nmi;
 assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
-	assign rdy = KEY[2];
+	assign rdy = KEY[2];	
+	logic [7:0] keycode, keystates;
+	logic keypress;
+	
+	assign {hex_4[7], hex_4[6]} = keystates;
+	
+	keyboard the_keyboard(.Clk(clk), .psClk(PS2_KBCLK), .psData(PS2_KBDAT), .reset(reset),
+					 .keyCode(keycode),
+					 .press(keypress));
 	cpu_toplevel cpu_toplevel( .*);
+
 	
    ppu_toplevel ppu_toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 	 
