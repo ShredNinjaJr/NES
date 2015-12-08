@@ -52,7 +52,6 @@ begin
 	if(reset)
 	begin
 		VRAM_addr <= 0;
-		p_oam_data_in <= 0;
 		s_oam_addr <= 0;
 		s_oam_data_in <= 0;
 		spr0_hit <= 0;
