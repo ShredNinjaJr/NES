@@ -19,7 +19,6 @@ module WRAM_mapper
 	output logic [7:0]oam_addr,
 	input [7:0] keycode,
 	input keypress,
-	input clk,
 	output logic [7:0] keystates
 );
 
@@ -125,22 +124,18 @@ begin
 	CPU_RAM_WE = 0;
 	vram_WE = 0;
 	vram_data_out = data_in;
-<<<<<<< HEAD
+
 	/* OAM DMA */
 	if(addr == 16'h4014)
 	begin
 		data_out = CPU_RAM_out;
 		CPU_RAM_WE = 0;
 	end
-	else if(addr < 16'h2000 )	/* It is inside the cartridge */
-=======
-	
 	 //controller read
-	 if((addr == 16'h4016) & ~WE)
+	 else if((addr == 16'h4016) & ~WE)
 		data_out = {7'h0, buttons[7]};
 	
 	 else if(addr < 16'h2000)	/* It is inside the cartridge */
->>>>>>> 5f8720e29578e0878c50285db26afee3ce5e683a
 	 begin
 				data_out = CPU_RAM_out;
 				CPU_RAM_WE = WE;

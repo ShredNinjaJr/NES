@@ -1,7 +1,7 @@
 /* WRAM used by the CPU */
 
 
-module WRAM(clk, reset, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE, oam_dma, oam_addr, keycode, keypress, keystates));
+module WRAM(clk, reset, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE, oam_dma, oam_addr, keycode, keypress, keystates);
 
 input clk, WE, reset, keypress;
 input [15:0] addr;
