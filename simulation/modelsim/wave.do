@@ -2,6 +2,7 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate -radix hexadecimal /FPGA_NES/cpu_toplevel/WRAM/CPU_RAM/reg_array
 add wave -noupdate -radix hexadecimal /FPGA_NES/ppu_toplevel/ppu_render/spr_render/p_oam/reg_array
+add wave -noupdate -radix hexadecimal /FPGA_NES/ppu_toplevel/ppu_render/spr_render/s_oam/reg_array
 add wave -noupdate -radix hexadecimal /FPGA_NES/clk
 add wave -noupdate -radix hexadecimal /FPGA_NES/reset
 add wave -noupdate -radix hexadecimal /FPGA_NES/oam_dma
@@ -45,8 +46,8 @@ add wave -noupdate -radix hexadecimal /FPGA_NES/ppu_toplevel/ppu_render/spr_rend
 add wave -noupdate -radix hexadecimal /FPGA_NES/ppu_toplevel/ppu_render/spr_render/next_state
 add wave -noupdate -radix hexadecimal /FPGA_NES/ppu_toplevel/ppu_render/spr_render/pr_oam_addr
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-quietly wave cursor active 0
+WaveRestoreCursors {{Cursor 1} {306 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left

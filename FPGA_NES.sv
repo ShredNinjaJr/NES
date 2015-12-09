@@ -45,7 +45,6 @@ assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
 	assign rdy = (~oam_dma);
 	cpu_toplevel cpu_toplevel( .*);
 	logic [7:0] oam_addr, oam_data_in;
-	assign oam_data_in = vram_data_out;
    ppu_toplevel ppu_toplevel(.*, .cpu_data_in(vram_data_out), .cpu_data_out(vram_data_in));
 	 
 	 

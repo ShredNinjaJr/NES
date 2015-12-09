@@ -10,7 +10,7 @@ module ppu_spr
 	input [7:0] oam_addr,
 	input [7:0] oam_data_in,
 	input oam_dma,
-	output logic spr0_hit, spr_overflow
+	output logic spr0_hit, spr_overflow, spr_priority
 );
 
 logic p_oam_WE, s_oam_WE;
@@ -77,7 +77,6 @@ begin
 		/* Clear spr0_hit at prerender scanline */
 		if(scanline == 10'd0 && x_idx == 10'd0)
 		begin
-			spr0_hit <= 0;
 			spr_overflow <= 0;
 			spr0_found <= 0;
 		end
@@ -146,6 +145,9 @@ begin
 			begin
 					s_oam_idx <= 0;
 					m <= 0;
+					for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
+						spr_bmp_shift[i] <= 1'b0;
+					spr0_hit <= 0;
 			end
 			
 			if(x_idx[0])	/* on odd cycles write to secondary OAM */
@@ -323,8 +325,11 @@ begin: next_state_logic
 			READ_Y: begin
 				if(spr_in_range)
 					next_state = COPY_SPR;
-				else
+				else if (x_idx[0])
 					next_state = INC_N;
+				
+				if(n == 6'h3f)
+					next_state = IDLE;
 			end
 			
 			COPY_SPR: begin
@@ -333,9 +338,7 @@ begin: next_state_logic
 			end
 			
 			INC_N: begin
-				if(n == 6'd0 & m == 2'd0)
-					next_state = IDLE;
-				else if(s_oam_idx < 3'd7)
+				if(s_oam_idx < 3'd7)
 					next_state = READ_Y;
 				else if(s_oam_idx == 3'd7)
 					next_state = SPR_OVERFLOW;
@@ -344,6 +347,8 @@ begin: next_state_logic
 			SPR_OVERFLOW: begin
 				if(spr_in_range)
 					next_state = IDLE;
+				if(x_idx >= 10'd256)
+					next_state = IDLE;
 			end
 			default: next_state = IDLE;
 		
@@ -351,23 +356,7 @@ begin: next_state_logic
 end:next_state_logic
 
 
-always_ff @(posedge clk, posedge reset)
-begin: Sprite_rendering
-	if(reset)
-	begin
-		;
-	end
-	else
-	begin
-		if(x_idx < 10'd256)
-		begin
-
-		end
-		
-	end
-
-end: Sprite_rendering
 
 assign pixel = {spr_attr[0][1:0], spr_bmp_high[0][7], spr_bmp_low[0][7]};
-
+assign spr_priority = spr_attr[0][5];
 endmodule
