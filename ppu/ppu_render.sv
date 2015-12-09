@@ -10,7 +10,7 @@ module ppu_render
 	input [9:0] scanline,
 	input bg_pt_addr, spr_pt_addr,
 	output logic spr0_hit, spr_overflow,
-	input oam_dma,
+	input oam_dma, show_spr,
 	input [7:0] oam_addr,
 	input [7:0] oam_data_in
 );

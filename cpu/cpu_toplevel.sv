@@ -11,7 +11,6 @@ module cpu_toplevel
 	output logic vram_WE,
 	input [7:0] vram_data_in,
 	output logic ppu_reg_cs,			/* Chip select for ppu registers. Active low */ 
-	output reg [7:0]		acc, instr,
    output logic [15:0]    pc,
 	output logic oam_dma,			/* Is high during oam_dma */
 	output logic [7:0]oam_addr, oam_data_in,

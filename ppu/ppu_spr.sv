@@ -9,7 +9,7 @@ module ppu_spr
 	input [9:0] scanline,
 	input [7:0] oam_addr,
 	input [7:0] oam_data_in,
-	input oam_dma,
+	input oam_dma, show_spr,
 	output logic spr0_hit, spr_overflow, spr_priority
 );
 
@@ -21,7 +21,7 @@ logic [2:0] s_oam_idx;
 logic [5:0] n;		/* counter for the sprite number */
 logic [1:0] m;		/* byte number */
 logic [9:0] y_idx;
-assign y_idx = (scanline);
+assign y_idx = scanline;
 assign p_oam_addr = (oam_dma) ? oam_addr :{n,m};
 /* Checks if sprite is in range */
 logic spr_in_range;
@@ -147,7 +147,6 @@ begin
 					m <= 0;
 					for(logic[3:0] i = 0; i < 4'd8; i = i+ 4'd1)
 						spr_bmp_shift[i] <= 1'b0;
-					spr0_hit <= 0;
 			end
 			
 			if(x_idx[0])	/* on odd cycles write to secondary OAM */
@@ -174,7 +173,7 @@ begin
 						if( n == 6'd0)
 							spr0_found <= 1;
 							
-						s_oam_addr <= {s_oam_idx[2:0], m};
+						s_oam_addr <= {s_oam_idx, m};
 						s_oam_data_in <= p_oam_data_out;
 						s_oam_WE <= 1;
 						m <= m+ 2'd1;
@@ -249,6 +248,7 @@ begin
 				end
 				3'h4:begin
 				/* If vertically flipped, get a different sliver */
+				
 				if(spr_attr[s_oam_idx][7] == 1'b1)
 					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
 				else
@@ -334,14 +334,17 @@ begin: next_state_logic
 			
 			COPY_SPR: begin
 				if(m == 2'd3 & x_idx[0])
-					next_state = INC_N;
+				begin
+					if(s_oam_idx == 3'd7)
+						next_state =SPR_OVERFLOW ;
+					else
+						next_state = INC_N;
+				end
 			end
 			
 			INC_N: begin
-				if(s_oam_idx < 3'd7)
+				if(s_oam_idx != 3'd7)
 					next_state = READ_Y;
-				else if(s_oam_idx == 3'd7)
-					next_state = SPR_OVERFLOW;
 			end
 			
 			SPR_OVERFLOW: begin
@@ -355,8 +358,25 @@ begin: next_state_logic
 		endcase
 end:next_state_logic
 
+/* Priority enocoder to determines the sprite that is displayed */
+logic [7:0] encoder_in;
+logic spr_active;
+logic [2:0] spr_idx;
+
+/* Make encoder input high if not background pixel and xpos = 0*/
+assign encoder_in[0] = (spr_x_pos[0] == 0) ? (spr_bmp_high[0][7] | spr_bmp_low[0][7]) : 1'b0;
+assign encoder_in[1] = (spr_x_pos[1] == 0) ? (spr_bmp_high[1][7] | spr_bmp_low[1][7]) : 1'b0;
+assign encoder_in[2] = (spr_x_pos[2] == 0) ? (spr_bmp_high[2][7] | spr_bmp_low[2][7]) : 1'b0;
+assign encoder_in[3] = (spr_x_pos[3] == 0) ? (spr_bmp_high[3][7] | spr_bmp_low[3][7]) : 1'b0;
+assign encoder_in[4] = (spr_x_pos[4] == 0) ? (spr_bmp_high[4][7] | spr_bmp_low[4][7]) : 1'b0;
+assign encoder_in[5] = (spr_x_pos[5] == 0) ? (spr_bmp_high[5][7] | spr_bmp_low[5][7]) : 1'b0;
+assign encoder_in[6] = (spr_x_pos[6] == 0) ? (spr_bmp_high[6][7] | spr_bmp_low[6][7]) : 1'b0;
+assign encoder_in[7] = (spr_x_pos[7] == 0) ? (spr_bmp_high[7][7] | spr_bmp_low[7][7]) : 1'b0;
 
 
-assign pixel = {spr_attr[0][1:0], spr_bmp_high[0][7], spr_bmp_low[0][7]};
-assign spr_priority = spr_attr[0][5];
+pri_encoder spr_pri ( .binary_out(spr_idx) , .in(encoder_in) , .enable(show_spr) , .V(spr_active));	
+ 
+
+assign pixel = {spr_attr[spr_idx][1:0], spr_bmp_high[spr_idx][7], spr_bmp_low[spr_idx][7]};
+assign spr_priority = spr_attr[spr_idx][5];
 endmodule

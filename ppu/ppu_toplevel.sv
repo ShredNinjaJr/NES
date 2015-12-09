@@ -32,6 +32,7 @@ logic [4:0] pixel;
 logic [4:0] palette_addr, palette_mem_addr;
 logic [9:0] hc, vc;
 logic show_bg;
+logic show_spr;
 logic bg_pt_addr;
 logic spr_pt_addr;
 logic spr0_hit, spr_overflow;
@@ -55,7 +56,7 @@ vga_controller vga_controller( .palette_disp_idx(palette_out[5:0]), .hs(VGA_HS),
 ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
 					.cpu_data_in(cpu_data_in), .cpu_data_out(cpu_data_out), .VGA_VS(VGA_VS), 
 					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
-					.show_bg(show_bg),
+					.show_bg(show_bg), .show_spr(show_spr),
 					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in),
 					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr));
 
