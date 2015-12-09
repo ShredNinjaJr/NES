@@ -91,12 +91,12 @@ begin
 					endcase
 				end
 				3'h4:begin
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
+					VRAM_addr <= {3'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
 				end
 				/* FETCH_PT_LOW_2 */	
 				3'h5:begin
 					PT_in_low <= VRAM_data_in;
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
+					VRAM_addr <= {3'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
 				end
 				
 				3'h6:begin
@@ -172,12 +172,12 @@ begin
 					endcase
 				end
 				3'h4:begin
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
+					VRAM_addr <= {3'b0, bg_pt_addr, PT_index, 1'b0, y_idx[2:0]};
 				end
 				/* FETCH_PT_LOW_2 */	
 				3'h5:begin
 					PT_in_low <= VRAM_data_in;
-					VRAM_addr <= {4'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
+					VRAM_addr <= {3'b0, bg_pt_addr, PT_index, 1'b1, y_idx[2:0]};
 				end
 				
 				3'h6:begin
