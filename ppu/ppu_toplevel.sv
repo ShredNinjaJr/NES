@@ -60,7 +60,7 @@ ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(pp
 					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr));
 
 
-assign vblank = (show_bg) ? (~VGA_VS) : 1'b1;
+assign vblank = (show_bg) ? (vc > 10'd250) : 1'b1;
 assign VRAM_addr = (vblank) ?  ppu_reg_vram_addr : vram_render_addr;
 assign palette_mem_addr = (vblank) ? palette_addr : pixel;
 					

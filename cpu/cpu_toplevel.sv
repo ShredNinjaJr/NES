@@ -14,8 +14,10 @@ module cpu_toplevel
 	output reg [7:0]		acc, instr,
    output logic [15:0]    pc,
 	output logic oam_dma,			/* Is high during oam_dma */
-	output logic [7:0]oam_addr, oam_data_in
-
+	output logic [7:0]oam_addr, oam_data_in,
+	input [7:0] keycode,
+	input keypress,
+	output logic [7:0] keystates
 );
 
 logic [7:0] wram_data_in, wram_data_out;
@@ -41,6 +43,6 @@ cpu cpu(
   .PC(pc)
  );
 
-WRAM WRAM(.*, .addr(wram_addr), .WE(~wram_WE), .data_out(wram_data_in), .data_in(wram_data_out));
+WRAM WRAM(.*, .addr(wram_addr), .WE(~wram_WE), .data_out(wram_data_in), .data_in(wram_data_out), .keycode(keycode), .keypress(keypress));
 
 endmodule
