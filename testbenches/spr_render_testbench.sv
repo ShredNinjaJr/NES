@@ -24,6 +24,8 @@ logic reset;
 					 VGA_VS,					//VGA vertical sync signal	
 					 VGA_HS,					//VGA horizontal sync signal
 					 NMI_enable;
+logic oam_dma;
+logic [7:0] oam_addr, oam_data_in;
 ppu_toplevel spr(.*);
 	
 // Toggle the clock

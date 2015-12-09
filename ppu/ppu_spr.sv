@@ -7,6 +7,9 @@ module ppu_spr
 	output logic [3:0] pixel,
 	input [9:0] x_idx,
 	input [9:0] scanline,
+	input [7:0] oam_addr,
+	input [7:0] oam_data_in,
+	input oam_dma,
 	output logic spr0_hit, spr_overflow
 );
 
@@ -37,11 +40,15 @@ logic spr_bmp_shift[7:0];			/* If x position is 0, shift sprites */
 
 /* states for sprites evaluation */
 enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state;
+logic [7:0] pr_oam_addr;
 
-assign p_oam_WE = 0;
+
+assign p_oam_data_in = oam_data_in;
+assign pr_oam_addr = (oam_dma) ? (oam_addr) : (p_oam_addr);
+assign p_oam_WE = oam_dma;
 /* Primary OAM*/
 RAM #(.w(8), .n(8)) p_oam (.*, .WE(p_oam_WE), .data_in(p_oam_data_in),
-					.data_out(p_oam_data_out), .addr(p_oam_addr));
+					.data_out(p_oam_data_out), .addr(pr_oam_addr));
 					
 /* Secondary OAM */
 RAM #(.w(8), .n(5)) s_oam (.*, .WE(s_oam_WE), .data_in(s_oam_data_in),
@@ -55,7 +62,6 @@ begin
 		VRAM_addr <= 0;
 		s_oam_addr <= 0;
 		s_oam_data_in <= 0;
-		p_oam_data_in <= 0;
 		spr0_hit <= 0;
 		n <= 0;
 		m <= 0;

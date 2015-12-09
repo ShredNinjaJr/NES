@@ -9,6 +9,7 @@ module ppu_toplevel
 	input [7:0] cpu_data_in,
 	output logic [7:0] cpu_data_out,
 	input [2:0] ppu_reg_addr, 
+	input oam_dma,
 	output logic [7:0]  VGA_R,			//VGA Red
 					 VGA_G,					//VGA Green
 					 VGA_B,					//VGA Blue
@@ -17,7 +18,9 @@ module ppu_toplevel
 					 VGA_BLANK_N,			//VGA Blank signal
 					 VGA_VS,					//VGA vertical sync signal	
 					 VGA_HS,					//VGA horizontal sync signal
-	output logic NMI_enable
+	output logic NMI_enable,
+	input [7:0] oam_addr,
+	input [7:0] oam_data_in
 );
 
 
