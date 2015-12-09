@@ -22,7 +22,7 @@ logic [5:0] n;		/* counter for the sprite number */
 logic [1:0] m;		/* byte number */
 logic [9:0] y_idx;
 assign y_idx = (scanline);
-assign p_oam_addr = {n,m};
+assign p_oam_addr = (oam_dma) ? oam_addr :{n,m};
 /* Checks if sprite is in range */
 logic spr_in_range;
 assign spr_in_range = (y_idx >= p_oam_data_out) && (y_idx < (10'd8 + p_oam_data_out));

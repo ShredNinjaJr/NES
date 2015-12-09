@@ -10,7 +10,7 @@ reg [w-1:0] reg_array [2**n-1:0];
 
 
 assign data_out = reg_array[addr];
-always @(negedge(clk)) begin
+always @(posedge(clk)) begin
     if( WE == 1 )
         reg_array[addr] <= data_in;
 end

@@ -14,14 +14,14 @@ module cpu_toplevel
 	output reg [7:0]		acc, instr,
    output logic [15:0]    pc,
 	output logic oam_dma,			/* Is high during oam_dma */
-	output logic [7:0]oam_addr
+	output logic [7:0]oam_addr, oam_data_in
 
 );
 
 logic [7:0] wram_data_in, wram_data_out;
 logic [15:0] wram_addr;
 logic wram_WE;
-
+assign oam_data_in = wram_data_in;
 
 cpu cpu(
   .clk_in(clk),         // 100MHz system clock

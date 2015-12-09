@@ -20,6 +20,7 @@ module WRAM_mapper
 
 logic [15:0] oam_dma_addr;
 logic [8:0] oam_counter;
+logic q_WE;		/* Register to hold WE. Used to check for a rising edge for dma */
 
 assign PRG_ROM_addr = addr[14:0];
 assign CPU_RAM_addr = (oam_dma) ? oam_dma_addr[10:0]  :addr[10:0];
@@ -32,8 +33,13 @@ begin
 	CPU_RAM_WE = 0;
 	vram_WE = 0;
 	vram_data_out = data_in;
-
-	 if(addr < 16'h2000)	/* It is inside the cartridge */
+	/* OAM DMA */
+	if(addr == 16'h4014)
+	begin
+		data_out = CPU_RAM_out;
+		CPU_RAM_WE = 0;
+	end
+	else if(addr < 16'h2000 )	/* It is inside the cartridge */
 	 begin
 				data_out = CPU_RAM_out;
 				CPU_RAM_WE = WE;
@@ -61,15 +67,17 @@ begin
 		oam_dma <= 0;
 		oam_counter <= 0;
 		oam_dma_addr <= 0;
+		q_WE <= 0;
 	end
 	else
 	begin
-		if(addr == 16'h4014 && WE)
+		q_WE <= WE;
+		if(addr == 16'h4014)
 		begin
-			if(oam_counter <= 9'd511)
-				oam_dma <= 0;
-			else
+			if(~q_WE & WE)		/* On rising edge */
 				oam_dma <= 1;
+			if(oam_counter == 9'd511)
+				oam_dma <= 0;
 				
 			oam_counter <= oam_counter + 9'd1;
 			oam_dma_addr <= {data_in,oam_counter[8:1]};
