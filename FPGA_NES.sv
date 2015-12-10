@@ -18,7 +18,6 @@ module  FPGA_NES		( input         CLOCK_50,
     
     logic clk, reset;
 	 assign reset = ~KEY[0];
-	  reg [7:0]		acc, instr;
    reg [15:0]    pc;
 	//This cuts the 50 Mhz clock in half to generate a 25 MHz pixel clock  
     always_ff @ (posedge CLOCK_50 or posedge reset )
@@ -32,7 +31,7 @@ module  FPGA_NES		( input         CLOCK_50,
 	HexDriver hex_drivers[7:0] (hex_4, {HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0});
 	
 	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = pc;
-	assign {hex_4[5], hex_4[4]} = instr;
+	//assign {hex_4[5], hex_4[4]} = instr;
 	
 	logic NMI_enable;
 	logic nres_in;

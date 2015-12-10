@@ -46,7 +46,6 @@ module ppu_reg
 	output logic bg_pt_addr,		/* bit 4 */
 	output logic spr_pt_addr,		/* bit 3*/
 	output logic vram_addr_inc,		/* bit 2*/
-	output logic [1:0] base_nt_addr,	/* bits 1, 0*/
 	
 	/*  PPUMASK ( 0x2001) write_only
 			7  bit  0
@@ -95,7 +94,11 @@ module ppu_reg
 	 
 	input spr_overflow,	/* bit 5*/
 	input spr0_hit,		/* bit 6*/
-	input VGA_VS	/* bit 7*/
+	input VGA_VS,	/* bit 7*/
+	
+	
+	/* PPUSCROLL */
+	output logic [2:0] fine_X_scroll
 );
 
 logic[7:0] dummy;	/* dummy register*/
@@ -117,6 +120,13 @@ logic cs_in_reg;
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to. 
 										0 is upper, 1 is lower */
+										
+					
+										
+logic [14:0] v;
+
+logic [14:0] t;
+
 always_ff @( negedge VGA_VS, posedge vblank_clear)
 begin
 	if(vblank_clear)
@@ -126,7 +136,10 @@ begin
 end
 
 assign palette_mem_addr = vram_addr_out[4:0];
+assign palette_data_out = cpu_data_in;
+assign vram_data_in = cpu_data_in;
 
+	
 always_ff @(posedge clk, posedge reset)
 begin
 	if(reset)
@@ -137,8 +150,11 @@ begin
 		vram_WE <= 0;
 		ppu_addr_counter <= 0;
 		show_bg <= 0;
-		palette_data_out <= 0;
 		palette_WE <= 0;
+		vram_addr_out <= 0;
+		cs_in_reg <= 0;
+		vblank_clear <= 0;
+
 	end
 	else
 	begin
@@ -149,17 +165,17 @@ begin
 		palette_WE <= 0;
 		oam_WE <= 0;
 		if(vram_inc)
-			begin
-				vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
-				vram_inc <= 0;
-			end
+		begin
+			vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
+			vram_inc <= 0;
+		end
 		if(~cs_in & cs_in_reg)
 		begin:Chipselect
 			case(reg_addr)
 				
 				PPUCTRL:begin
 						if(WE)
-							{NMI_enable, dummy[0], sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, base_nt_addr} <= cpu_data_in;
+							{NMI_enable, dummy[0], sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, t[11:10]} <= cpu_data_in;
 					end
 				
 				PPUMASK:begin
@@ -168,10 +184,11 @@ begin
 				end
 				
 				PPUSTATUS:begin
-					cpu_data_out <= {vblank_start_reg, spr0_hit, spr_overflow, lsb_last_write};
+					cpu_data_out <= {vblank_start_reg, /*spr0_hit*/1'b0, spr_overflow, lsb_last_write};
 					/* Clear the vblank upon read */
 					if(vblank_start_reg == 1'b1)
 						vblank_clear <= 1;
+					ppu_addr_counter <= 0;
 				end
 				OAMADDR:begin
 					oam_addr_out <= cpu_data_in;
@@ -185,6 +202,21 @@ begin
 					end
 					else
 						cpu_data_out <= oam_data_in;
+				end
+				PPUSCROLL:begin
+					if(ppu_addr_counter)
+					begin
+						t[14:12] = cpu_data_in[2:0];
+						t[7:5] = cpu_data_in[5:3];
+						t[9:8] = cpu_data_in[7:6];
+						
+					end
+					else
+					begin
+						t[4:0] <= cpu_data_in[7:3];
+						fine_X_scroll <= cpu_data_in[2:0];
+					end	
+					ppu_addr_counter <= ~ppu_addr_counter;
 				end
 				
 				PPUADDR: begin
@@ -205,19 +237,14 @@ begin
 					begin
 
 						palette_WE <= WE;
-						palette_data_out <= cpu_data_in;
-						cpu_data_out <= palette_data_in;
+						if(~WE)
+							cpu_data_out <= palette_data_in;
 					end
 					
 					else
 					begin
 						vram_WE <= WE;
-						if(WE)
-						begin
-							vram_data_in <= cpu_data_in;
-							
-						end
-						else
+						if(~WE)
 						begin
 							cpu_data_out <= vram_data_out;
 						end

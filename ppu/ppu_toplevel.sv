@@ -37,7 +37,7 @@ logic bg_pt_addr;
 logic spr_pt_addr;
 logic spr0_hit, spr_overflow;
 logic vblank;		/* Signal that determines whether ppu memory is safe to access from CPU*/
-
+logic [2:0] fine_X_scroll;
 
 VRAM VRAM(.clk(clk), .addr(VRAM_addr), .WE(VRAM_WE), .data_out(VRAM_data_out), .data_in(VRAM_data_in));
 
@@ -59,7 +59,7 @@ ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(pp
 					.show_bg(show_bg), .show_spr(show_spr),
 					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in),
 					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr),
-					.spr0_hit(spr0_hit));
+					.spr0_hit(spr0_hit | (vc > 10'd256)), .fine_X_scroll(fine_X_scroll));
 
 
 assign vblank = (show_bg) ? (vc > 10'd280) : 1'b1;

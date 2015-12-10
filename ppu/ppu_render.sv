@@ -12,15 +12,16 @@ module ppu_render
 	output logic spr0_hit, spr_overflow,
 	input oam_dma, show_spr,
 	input [7:0] oam_addr,
-	input [7:0] oam_data_in
+	input [7:0] oam_data_in,
+	input [2:0] fine_X_scroll
 );
 
 logic [3:0] bg_pixel, spr_pixel;
-logic spr_priority;
+logic spr_priority = 1;
 logic [15:0] bg_VRAM_addr, spr_VRAM_addr; 
 ppu_bg bg_render(.*, .pixel(bg_pixel), .VRAM_addr(bg_VRAM_addr));
 
-ppu_spr spr_render(.*, .VRAM_addr(spr_VRAM_addr), .pixel(spr_pixel) );
+//ppu_spr spr_render(.*, .VRAM_addr(spr_VRAM_addr), .pixel(spr_pixel) );
 
 assign VRAM_addr = (x_idx > 10'd255 && x_idx < 10'd320) ? (spr_VRAM_addr) : bg_VRAM_addr;
 
