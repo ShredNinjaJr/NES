@@ -58,10 +58,11 @@ ppu_reg	ppu_register_interface(.clk(clk), .reset(reset), .WE(vram_WE), .cs_in(pp
 					.vram_WE(VRAM_WE), .vram_data_out(VRAM_data_out), .vram_data_in(VRAM_data_in), .vram_addr_out(ppu_reg_vram_addr),
 					.show_bg(show_bg), .show_spr(show_spr),
 					.palette_mem_addr(palette_addr), .palette_WE(palette_WE), .palette_data_in(palette_out), .palette_data_out(palette_data_in),
-					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr));
+					.NMI_enable(NMI_enable) , .bg_pt_addr(bg_pt_addr), .spr_pt_addr(spr_pt_addr),
+					.spr0_hit(spr0_hit));
 
 
-assign vblank = (show_bg) ? (vc > 10'd250) : 1'b1;
+assign vblank = (show_bg) ? (vc > 10'd280) : 1'b1;
 assign VRAM_addr = (vblank) ?  ppu_reg_vram_addr : vram_render_addr;
 assign palette_mem_addr = (vblank) ? palette_addr : pixel;
 					

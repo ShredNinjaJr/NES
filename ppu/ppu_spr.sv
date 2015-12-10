@@ -13,6 +13,7 @@ module ppu_spr
 	output logic spr0_hit, spr_overflow, spr_priority
 );
 
+logic d_spr0_hit;
 logic p_oam_WE, s_oam_WE;
 logic [7:0] p_oam_data_in, p_oam_data_out, s_oam_data_in, s_oam_data_out;
 logic [7:0] p_oam_addr;
@@ -21,7 +22,7 @@ logic [2:0] s_oam_idx;
 logic [5:0] n;		/* counter for the sprite number */
 logic [1:0] m;		/* byte number */
 logic [9:0] y_idx;
-assign y_idx = scanline;
+assign y_idx = scanline - 10'd1;
 assign p_oam_addr = (oam_dma) ? oam_addr :{n,m};
 /* Checks if sprite is in range */
 logic spr_in_range;
@@ -37,6 +38,7 @@ logic [7:0] spr_bmp_high[7:0];	/* Bitmap of higher bytes */
 logic [7:0] spr_attr[7:0];			/* attributes of sprite */
 logic [7:0] spr_x_pos[7:0];		/* X position of sprites */
 logic spr_bmp_shift[7:0];			/* If x position is 0, shift sprites */
+logic [2:0] spr_y_idx;
 
 /* states for sprites evaluation */
 enum logic [2:0] {IDLE, READ_Y, COPY_SPR, INC_N, SPR_OVERFLOW}state, next_state;
@@ -69,6 +71,7 @@ begin
 		spr0_found <= 0;
 		spr_tile_num <= 0;
 		state <= IDLE;
+		spr_y_idx <= 0;
 	end
 	else
 	begin
@@ -79,8 +82,11 @@ begin
 		begin
 			spr_overflow <= 0;
 			spr0_found <= 0;
+			spr0_hit <= 0;
 		end
 		
+		if(d_spr0_hit)
+			spr0_hit <= 1;
 		/* for the first 64 cycles, initialize the secondary OAM to $FF */
 		if(x_idx < 10'd64)
 		begin
@@ -156,7 +162,8 @@ begin
 						s_oam_addr <= {s_oam_idx, m};
 						s_oam_data_in <= p_oam_data_out;
 						s_oam_WE <= 1;
-						
+						if((n == 2'd0) && (p_oam_data_out > 8'hEF))
+							spr0_hit <= 1;
 						if(spr_in_range)
 						begin
 							m <= m+ 2'd1;
@@ -172,6 +179,7 @@ begin
 						/* If fetching 0th sprite, set spr0 hit */
 						if( n == 6'd0)
 							spr0_found <= 1;
+						
 							
 						s_oam_addr <= {s_oam_idx, m};
 						s_oam_data_in <= p_oam_data_out;
@@ -221,23 +229,29 @@ begin
 		begin: Sprite_fetch
 			/* Fetch the name table entries in the secondary OAM */
 			case(x_idx[2:0])
-				/* FETCH_NT_2 */
 				3'h0: begin
-					VRAM_addr <= 0;
+					VRAM_addr <= 0;	
+					s_oam_addr <= {s_oam_idx, 2'd0};
+			
+				end
+				
+				3'h1: begin
+					spr_y_idx <= ((y_idx - 10'd1) - s_oam_data_out) + 3'd1;
+					
 					s_oam_addr <= {s_oam_idx, 2'd1};
 					
 				end
-				3'h1: begin
+				3'h2: begin
 					spr_tile_num <= s_oam_data_out;
 					s_oam_addr <= {s_oam_idx, 2'd2};
 				end
-				 3'h2:	begin
+				 3'h3:	begin
 					spr_attr[s_oam_idx] <= s_oam_data_out;
 					s_oam_addr <= {s_oam_idx, 2'd3};
 				 end
 				 
 				/* FETCH_AT_2 */
-				3'h3: begin
+				3'h4: begin
 					/* If it is sprite 0, set attr bit 2 to 1 */
 					if(spr0_found)
 						spr_attr[s_oam_idx][2] <= 1'b1;
@@ -246,16 +260,16 @@ begin
 					spr_x_pos[s_oam_idx] <= s_oam_data_out;
 					
 				end
-				3'h4:begin
+				3'h5:begin
 				/* If vertically flipped, get a different sliver */
 				
 				if(spr_attr[s_oam_idx][7] == 1'b1)
-					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
+					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~spr_y_idx};
 				else
-					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, y_idx[2:0]};
+					VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, spr_y_idx};
 				end
 				/* FETCH_PT_LOW_2 */	
-				3'h5:begin
+				3'h6:begin
 					if(spr_tile_num == 8'hFF)
 						spr_bmp_low[s_oam_idx] <= 8'h0;
 					else
@@ -277,12 +291,12 @@ begin
 					end
 						
 					if(spr_attr[s_oam_idx][7] == 1'b1)
-						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(y_idx[2:0])};
+						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b0, ~(spr_y_idx)};
 					else
-						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b1, y_idx[2:0]};
+						VRAM_addr <= {3'b0, spr_pt_addr, spr_tile_num, 1'b1, spr_y_idx};
 				end
 				
-				3'h6:begin
+				3'h7:begin
 					if(spr_tile_num == 8'hFF)
 						spr_bmp_high[s_oam_idx] <= 8'h0;
 					else
@@ -301,9 +315,6 @@ begin
 						else
 						spr_bmp_high[s_oam_idx] <= VRAM_data_in;
 					end
-					
-				end
-				3'h7: begin
 					s_oam_idx <= s_oam_idx + 3'd1;
 				end
 				
@@ -363,6 +374,7 @@ logic [7:0] encoder_in;
 logic spr_active;
 logic [2:0] spr_idx;
 
+
 /* Make encoder input high if not background pixel and xpos = 0*/
 assign encoder_in[0] = (spr_x_pos[0] == 0) ? (spr_bmp_high[0][7] | spr_bmp_low[0][7]) : 1'b0;
 assign encoder_in[1] = (spr_x_pos[1] == 0) ? (spr_bmp_high[1][7] | spr_bmp_low[1][7]) : 1'b0;
@@ -376,7 +388,7 @@ assign encoder_in[7] = (spr_x_pos[7] == 0) ? (spr_bmp_high[7][7] | spr_bmp_low[7
 
 pri_encoder spr_pri ( .binary_out(spr_idx) , .in(encoder_in) , .enable(show_spr) , .V(spr_active));	
  
-
-assign pixel = {spr_attr[spr_idx][1:0], spr_bmp_high[spr_idx][7], spr_bmp_low[spr_idx][7]};
+assign d_spr0_hit = (spr_idx == 3'd0) ? (spr_active & spr0_found)  : 1'b0; 
+assign pixel = (spr_active) ? {spr_attr[spr_idx][1:0], spr_bmp_high[spr_idx][7], spr_bmp_low[spr_idx][7]} : 4'd0;
 assign spr_priority = spr_attr[spr_idx][5];
 endmodule

@@ -44,7 +44,7 @@ assign nres_in	= KEY[1];
 	logic nmi;
 assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
 
-	assign rdy = (~oam_dma);
+	assign rdy = (~oam_dma);// & KEY[2];
 	logic [7:0] oam_addr, oam_data_in;
 
 	logic [7:0] keycode, keystates;
@@ -52,7 +52,7 @@ assign nmi = (NMI_enable) ? VGA_VS : 1'b1;
 	
 	assign {hex_4[7], hex_4[6]} = keystates;
 	
-	keyboard the_keyboard(.Clk(clk), .psClk(PS2_KBCLK), .psData(PS2_KBDAT), .reset(reset),
+	keyboard the_keyboard(.Clk(CLOCK_50), .psClk(PS2_KBCLK), .psData(PS2_KBDAT), .reset(reset),
 					 .keyCode(keycode),
 					 .press(keypress));
 	cpu_toplevel cpu_toplevel( .*);

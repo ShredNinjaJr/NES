@@ -14,8 +14,8 @@ module keyboard(input logic Clk, psClk, psData, reset,
 	logic Q1, Q2, en, enable, shiftoutA, shiftoutB, Press;
 	logic [4:0] Count; 
 	logic [10:0] DO_A, DO_B;
-	logic [7:0] Data;
 	logic [9:0] counter;
+	logic [7:0] Data;
 	//Counter to sync ps2 clock and system clock
 	always@(posedge Clk or posedge reset)
 	begin
@@ -53,6 +53,8 @@ module keyboard(input logic Clk, psClk, psData, reset,
 
 	always@(posedge Clk)
 	begin
+	Data <= 8'h0;
+	Press <= 1'b0;
 		if( Count == 5'b01011)
 		begin
 			//if the user keeps pressing the key
@@ -117,4 +119,4 @@ module keyboard(input logic Clk, psClk, psData, reset,
 	assign keyCode=Data;
 	assign press=Press;
 	
-endmodule 
+endmodule
