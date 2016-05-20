@@ -9,13 +9,15 @@ timeprecision 1ns;
 // These signals are internal because the processor will be 
 // instantiated as a submodule in testbench.
 logic clk = 0;	
-logic WE;
+logic WE, reset, oam_dma;
 logic [15:0] addr;
 logic [7:0] data_out, data_in;
 logic [7:0] vram_data_in;
 logic [7:0] vram_data_out;
-logic ppu_reg_cs, vram_WE;
+logic ppu_reg_cs, vram_WE, keypress;
 logic [2:0] ppu_reg_addr;
+logic [7:0] oam_addr;
+logic [7:0] keystates, keycode;
 WRAM wram(.*);
 
 // Toggle the clock

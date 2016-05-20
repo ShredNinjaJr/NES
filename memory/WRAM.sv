@@ -1,13 +1,20 @@
 /* WRAM used by the CPU */
 
-module WRAM(clk, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE);
 
-input clk, WE;
+module WRAM(clk, reset, addr, WE, data_out, data_in, vram_data_in, vram_data_out, ppu_reg_cs, ppu_reg_addr, vram_WE, oam_dma, oam_addr, keycode, keypress, keystates);
+
+input clk, WE, reset, keypress;
 input [15:0] addr;
 input [7:0] data_in, vram_data_in;
 output logic[7:0] data_out, vram_data_out;
 output logic ppu_reg_cs, vram_WE;
 output logic [2:0] ppu_reg_addr;
+output logic oam_dma;			/* Is high during oam_dma */
+	output logic [7:0]oam_addr;
+
+
+input [7:0] keycode;
+output logic [7:0] keystates;
 
 /* module begin */
 logic [10:0] CPU_RAM_addr;

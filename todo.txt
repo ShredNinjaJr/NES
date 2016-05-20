@@ -1,0 +1,6 @@
+Things to do:
+
+Change RAM to asynchronous? Hopefuly doesn't impact the compilation time alot
+Visual Cleanup of some files?
+Create a new block diagram.
+Implement testbenches and scripts.

@@ -148,13 +148,13 @@ begin
 		vram_WE <= 0;
 		palette_WE <= 0;
 		oam_WE <= 0;
+		if(vram_inc)
+			begin
+				vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
+				vram_inc <= 0;
+			end
 		if(~cs_in & cs_in_reg)
 		begin:Chipselect
-			if(vram_inc)
-					begin
-						vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
-						vram_inc <= 0;
-					end
 			case(reg_addr)
 				
 				PPUCTRL:begin

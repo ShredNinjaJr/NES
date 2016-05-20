@@ -19,9 +19,9 @@ assign data_out = mem_array[addr];
 
 			
 
-always_ff @ (negedge clk or posedge reset)
+always_ff @ (negedge clk /*or posedge reset*/)
 begin
-	if(reset)
+	/*if(reset)
 	begin
 	mem_array[0] <= 8'h22;
 	mem_array[1] <= 8'h29;
@@ -40,7 +40,8 @@ begin
 	mem_array[14] <= 8'h17;
 	mem_array[15] <= 8'h0F;
 	end
-	else if(WE)
+	else */
+	if(WE)
 	begin
 		case(addr)
 		/* mirrored palette */
