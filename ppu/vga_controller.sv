@@ -24,7 +24,7 @@ module  vga_controller
     assign sync = 1'b0;
 
 
-    //Runs the horizontal counter  when it resets vertical counter is incremented
+    //Runs the horizontal counter when it resets vertical counter is incremented
     always_ff @ (posedge clk or posedge reset )
 	begin: counter_proc
         if ( reset )
@@ -78,7 +78,8 @@ module  vga_controller
     end
 
     //only display pixels between horizontal 0-639 and vertical 0-479 (640x480)
-    //(This signal is registered within the DAC chip, so we can leave it as pure combinational logic here)
+    //(This signal is registered within the DAC chip, so we can leave it as
+    // pure combinational logic here)
     always_comb
     begin
         if ( (hc >= 10'd640) | (vc >= 10'd480) )

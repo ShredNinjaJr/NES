@@ -10,17 +10,9 @@ module SIPO_shift_register #(parameter width = 8)
 
 logic [width-1:0] data;
 
-/* Altera device registers are 0 at power on. Specify this
- * so that Modelsim works as expected.
- */
-initial
-begin
-    data = 1'b0;
-end
-
 always_ff @(posedge clk or posedge reset)
 begin
-   
+
 	 if (reset)
 		data = 0;
 	 else if(shift_en)
@@ -49,17 +41,10 @@ module PISO_shift_register #(parameter width = 8)
 
 logic [width-1:0] data;
 
-/* Altera device registers are 0 at power on. Specify this
- * so that Modelsim works as expected.
- */
-initial
-begin
-    data = 1'b0;
-end
 
 always_ff @(posedge clk or posedge reset)
 begin
-   
+
 	 if (reset)
 		data = 0;
 	 else if (load)
