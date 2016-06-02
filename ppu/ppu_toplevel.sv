@@ -73,7 +73,7 @@ ppu_reg	ppu_register_interface
 	.clk, .reset, .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
 	.cpu_data_in, .cpu_data_out, .VGA_VS, .vram_WE(VRAM_WE),
 	.vram_data_out, .vram_data_in, .vram_addr_out(ppu_reg_vram_addr),
-	.show_bg(show_bg), .show_spr(show_spr),
+	.show_bg, .show_spr,
 	.palette_mem_addr(palette_addr), .palette_WE(palette_WE),
 	.palette_data_in(palette_out), .palette_data_out(palette_data_in),
 	.NMI_enable , .bg_pt_addr, .spr_pt_addr, .spr0_hit

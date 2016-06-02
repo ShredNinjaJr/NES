@@ -47,7 +47,7 @@ always_ff @(negedge ctrl_shift)
 begin
 
 if(WE & data_in[0])
-	buttons <= keystates;
+	buttons <= keycode;
 	
 	else if(~WE)
 	buttons <= {buttons[6:0], 1'b0};

@@ -3,7 +3,7 @@ module  FPGA_NES
 (
     input CLOCK_50,  /* Internal clock */
     input[3:0]  KEY, /*PUSH Buttons */
-    //input[16:0]   SW, /* Switches*/
+    input[16:0]   SW, /* Switches*/
     output logic [6:0]  HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7, /* Hex display*/
     input PS2_KBCLK, PS2_KBDAT,
     //output [8:0]  LEDG,
@@ -39,6 +39,7 @@ module  FPGA_NES
 
 	assign {hex_4[3], hex_4[2], hex_4[1], hex_4[0]} = pc;
 	assign {hex_4[5], hex_4[4]} = instr;
+	assign {hex_4[7], hex_4[6]} = keycode;
 
 	logic NMI_enable;
 	logic nres_in;
@@ -57,11 +58,12 @@ module  FPGA_NES
 	logic [7:0] keycode, keystates;
 	logic keypress;
 
-	assign {hex_4[7], hex_4[6]} = keystates;
+	//assign {hex_4[7], hex_4[6]} = keystates;
 
-	keyboard the_keyboard(.Clk(CLOCK_50), .psClk(PS2_KBCLK), .psData(PS2_KBDAT), .reset(reset),
+	/*keyboard the_keyboard(.Clk(CLOCK_50), .psClk(PS2_KBCLK), .psData(PS2_KBDAT), .reset(reset),
 					 .keyCode(keycode),
-					 .press(keypress));
+					 .press(keypress)); */
+	assign keycode = SW[7:0];//
 	cpu_toplevel cpu_toplevel( .*);
 
 

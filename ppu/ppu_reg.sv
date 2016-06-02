@@ -11,7 +11,7 @@ module ppu_reg
 	input [2:0] reg_addr,		/* Addr of register being chosen*/
 	input logic [7:0] vram_data_out,	/* Data in to  the ppu if writing to VRAM */
 	output logic [7:0] vram_data_in,	/* Data out from the ppu if reading from VRAM */
-	output logic [15:0] vram_addr_out,	/* Vram addr_out to write/read data to VRAM */	
+	output logic [15:0] vram_addr_out,	/* Vram addr_out to write/read data to VRAM */
 	output logic [7:0] oam_data_out,		/* OAM data if writing to OAM (0x2004 writes)*/
 	output logic [7:0] oam_data_in,		/* OAM data if reading from OAM (0x2004 reads)*/
 	output logic [7:0] oam_addr_out,		/* OAM addr to read/write to*/
@@ -20,9 +20,9 @@ module ppu_reg
 	output logic palette_WE,
 	output logic [7:0] palette_data_out,
 	input [7:0] palette_data_in,
-	
+
 	/* register bit outputs */
-	
+
 	/*		PPUCTRL (0x2000) write only
 	 7  bit  0
 	---- ----
@@ -47,7 +47,7 @@ module ppu_reg
 	output logic spr_pt_addr,		/* bit 3*/
 	output logic vram_addr_inc,		/* bit 2*/
 	output logic [1:0] base_nt_addr,	/* bits 1, 0*/
-	
+
 	/*  PPUMASK ( 0x2001) write_only
 			7  bit  0
 		---- ----
@@ -68,9 +68,9 @@ module ppu_reg
 	output logic show_spr_left, /* bit 2*/
 	output logic show_bg_left, /* bit 1*/
 	output logic grayscale, /* bit 0*/
-	
+
 	/* PPU_STATUS (0x2002) read only
-	
+
 	7  bit  0
 	---- ----
 	VSO. ....
@@ -92,13 +92,12 @@ module ppu_reg
 				  line); cleared after reading $2002 and at dot 1 of the
 				  pre-render line.
 	 */
-	 
+
 	input spr_overflow,	/* bit 5*/
 	input spr0_hit,		/* bit 6*/
 	input VGA_VS	/* bit 7*/
 );
 
-logic[7:0] dummy;	/* dummy register*/
 /* register numbers in the mem array */
 parameter PPUCTRL = 3'd0;
 parameter PPUMASK = 3'd1;
@@ -111,12 +110,22 @@ parameter PPUDATA = 3'd7;
 
 logic vram_inc;
 logic vblank_start, vblank_clear;
-logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
+
 logic vblank_start_reg;
 logic cs_in_reg;
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
-										of the PPU address is being written to. 
+										of the PPU address is being written to.
 										0 is upper, 1 is lower */
+
+logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
+always_ff @ (posedge clk)
+begin
+	if(WE)
+	begin
+		lsb_last_write <= cpu_data_in[4:0];
+	end
+end
+
 always_ff @( negedge VGA_VS, posedge vblank_clear)
 begin
 	if(vblank_clear)
@@ -149,24 +158,29 @@ begin
 		palette_WE <= 0;
 		oam_WE <= 0;
 		if(vram_inc)
-			begin
-				vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
-				vram_inc <= 0;
-			end
-		if(~cs_in & cs_in_reg)
+		begin
+			vram_addr_out <= vram_addr_out + ((vram_addr_inc) ? 16'd32: 16'd1);
+			vram_inc <= 0;
+		end
+		if(~cs_in & cs_in_reg)   /* Only on negative edge, because of cross-clock domain */
 		begin:Chipselect
 			case(reg_addr)
-				
+
 				PPUCTRL:begin
-						if(WE)
-							{NMI_enable, dummy[0], sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, base_nt_addr} <= cpu_data_in;
+					if(WE)
+					begin
+						{sprite_size, bg_pt_addr, spr_pt_addr, vram_addr_inc, base_nt_addr} <= cpu_data_in[5:0];
+						NMI_enable <= cpu_data_in[7];
 					end
-				
+				end
+
 				PPUMASK:begin
 					if(WE)
+					begin
 						{color_emph_bgr, show_spr, show_bg, show_spr_left, show_bg_left, grayscale} <= cpu_data_in;
+					end
 				end
-				
+
 				PPUSTATUS:begin
 					cpu_data_out <= {vblank_start_reg, spr0_hit, spr_overflow, lsb_last_write};
 					/* Clear the vblank upon read */
@@ -174,7 +188,10 @@ begin
 						vblank_clear <= 1;
 				end
 				OAMADDR:begin
-					oam_addr_out <= cpu_data_in;
+					if(WE)
+					begin
+						oam_addr_out <= cpu_data_in;
+					end
 				end
 				OAMDATA:begin
 					if(WE)
@@ -186,7 +203,7 @@ begin
 					else
 						cpu_data_out <= oam_data_in;
 				end
-				
+
 				PPUADDR: begin
 					if(ppu_addr_counter)
 					begin
@@ -196,10 +213,10 @@ begin
 					begin
 						vram_addr_out[15:8] <= cpu_data_in;
 					end
-					
+
 					ppu_addr_counter <= ~ppu_addr_counter;
 				end
-				
+
 				PPUDATA:begin
 					if(vram_addr_out[13:8] == 6'h3F)
 					begin
@@ -208,23 +225,23 @@ begin
 						palette_data_out <= cpu_data_in;
 						cpu_data_out <= palette_data_in;
 					end
-					
+
 					else
 					begin
 						vram_WE <= WE;
 						if(WE)
 						begin
 							vram_data_in <= cpu_data_in;
-							
+
 						end
 						else
 						begin
 							cpu_data_out <= vram_data_out;
 						end
 					end
-					vram_inc <= 1;					
+					vram_inc <= 1;
 				end
-				
+
 			endcase
 		end: Chipselect
 	end
