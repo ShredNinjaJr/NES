@@ -15,6 +15,8 @@ begin
 end
 
 
+always @(negedge(clk)) begin
+    data_out <= reg_array[addr];
+end
 
-    assign data_out= reg_array[addr];
 endmodule
