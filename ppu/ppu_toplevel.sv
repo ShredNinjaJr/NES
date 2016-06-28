@@ -76,7 +76,7 @@ ppu_reg	ppu_register_interface
 	.show_bg, .show_spr,
 	.palette_mem_addr(palette_addr), .palette_WE(palette_WE),
 	.palette_data_in(palette_out), .palette_data_out(palette_data_in),
-	.NMI_enable , .bg_pt_addr, .spr_pt_addr, .spr0_hit
+	.NMI_enable , .bg_pt_addr, .spr_pt_addr, .spr0_hit, .vc
 );
 
 

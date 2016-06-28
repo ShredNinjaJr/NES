@@ -95,7 +95,8 @@ module ppu_reg
 
 	input spr_overflow,	/* bit 5*/
 	input spr0_hit,		/* bit 6*/
-	input VGA_VS	/* bit 7*/
+	input VGA_VS,	/* bit 7*/
+	input [9:0] vc
 );
 
 /* register numbers in the mem array */
@@ -111,7 +112,6 @@ parameter PPUDATA = 3'd7;
 logic vram_inc;
 logic vblank_start, vblank_clear;
 
-logic vblank_start_reg;
 logic cs_in_reg;
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to.
@@ -126,12 +126,12 @@ begin
 	end
 end
 
-always_ff @( negedge VGA_VS, posedge vblank_clear)
+always_ff @(posedge clk)
 begin
-	if(vblank_clear)
+	if(vc == 0 | vblank_clear)
 		vblank_start <= 0;
 	else
-		vblank_start <= 1;
+		vblank_start <= ~VGA_VS;
 end
 
 assign palette_mem_addr = vram_addr_out[4:0];
@@ -141,19 +141,17 @@ begin
 	if(reset)
 	begin
 		cpu_data_out <= 0;
-		vblank_start_reg <= 0;
 		oam_data_out <= 0;
 		vram_WE <= 0;
 		ppu_addr_counter <= 0;
 		show_bg <= 0;
 		palette_data_out <= 0;
 		palette_WE <= 0;
+		vblank_clear <= 0;
 	end
 	else
 	begin
 		cs_in_reg <= cs_in;
-		vblank_start_reg <= vblank_start;
-		vblank_clear <= 0;
 		vram_WE <= 0;
 		palette_WE <= 0;
 		oam_WE <= 0;
@@ -182,10 +180,14 @@ begin
 				end
 
 				PPUSTATUS:begin
-					cpu_data_out <= {vblank_start_reg, spr0_hit, spr_overflow, lsb_last_write};
-					/* Clear the vblank upon read */
-					if(vblank_start_reg == 1'b1)
-						vblank_clear <= 1;
+					if(!WE)
+					begin
+						cpu_data_out <= {vblank_start, spr0_hit, spr_overflow, lsb_last_write};
+						/* Clear the vblank upon read */
+						vblank_clear <= vblank_start;
+						/* Reset the Address counter */
+						ppu_addr_counter <= 0;
+					end
 				end
 				OAMADDR:begin
 					if(WE)
