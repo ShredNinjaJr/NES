@@ -1,3 +1,4 @@
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 # -------------------------------------------------------------------------- #
 #
 # Copyright (C) 1991-2015 Altera Corporation. All rights reserved.

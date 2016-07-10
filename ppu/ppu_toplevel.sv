@@ -13,8 +13,8 @@ module ppu_toplevel
 					 	VGA_G,			//VGA Green
 					 	VGA_B,			//VGA Blue
 	output logic 	VGA_CLK,		//VGA Clock
-					VGA_SYNC_N,	//VGA Sync signal
-					VGA_BLANK_N,//VGA Blank signal
+					VGA_SYNC_N,		//VGA Sync signal
+					VGA_BLANK_N,	//VGA Blank signal
 					VGA_VS,			//VGA vertical sync signal
 					VGA_HS,			//VGA horizontal sync signal
 	output logic NMI_enable,
@@ -37,6 +37,7 @@ logic bg_pt_addr;
 logic spr_pt_addr;
 logic spr0_hit, spr_overflow;
 logic vblank;	/* determines whether ppu memory is safe to access from CPU*/
+logic [2:0] fine_x_scroll;
 
 
 VRAM VRAM
@@ -73,7 +74,7 @@ ppu_reg	ppu_register_interface
 	.clk, .reset, .WE(vram_WE), .cs_in(ppu_reg_cs), .reg_addr(ppu_reg_addr),
 	.cpu_data_in, .cpu_data_out, .VGA_VS, .vram_WE(VRAM_WE),
 	.vram_data_out, .vram_data_in, .vram_addr_out(ppu_reg_vram_addr),
-	.show_bg, .show_spr,
+	.show_bg, .show_spr, .fine_x_scroll,
 	.palette_mem_addr(palette_addr), .palette_WE(palette_WE),
 	.palette_data_in(palette_out), .palette_data_out(palette_data_in),
 	.NMI_enable , .bg_pt_addr, .spr_pt_addr, .spr0_hit, .vc

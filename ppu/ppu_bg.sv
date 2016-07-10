@@ -6,7 +6,8 @@ module ppu_bg
 	output logic [3:0] pixel,		/* Palette address for the pixel */
 	input [9:0] x_idx,
 	input [9:0] scanline,
-	input bg_pt_addr
+	input bg_pt_addr,
+	input [2:0] fine_x_scroll
 );
 
 logic shift_en;
@@ -28,7 +29,7 @@ assign x_cord =  (x_idx < 9'd256) ? tile_num[1] : x_idx[4];
 logic [15:0] PT_low_reg, PT_high_reg;
 logic [8:0] AT_low_reg, AT_high_reg;
 
-assign pixel = { AT_high_reg[0], AT_low_reg[0], PT_high_reg[0], PT_low_reg[0]};
+assign pixel = { AT_high_reg[fine_x_scroll], AT_low_reg[fine_x_scroll], PT_high_reg[fine_x_scroll], PT_low_reg[fine_x_scroll]};
 
 always_ff @ (posedge clk, posedge reset)
 begin

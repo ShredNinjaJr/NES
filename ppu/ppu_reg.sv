@@ -96,7 +96,9 @@ module ppu_reg
 	input spr_overflow,	/* bit 5*/
 	input spr0_hit,		/* bit 6*/
 	input VGA_VS,	/* bit 7*/
-	input [9:0] vc
+	input [9:0] vc,
+	output logic [2:0] fine_x_scroll, fine_y_scroll,
+	output logic [4:0] coarse_x_scroll, coarse_y_scroll
 );
 
 /* register numbers in the mem array */
@@ -116,6 +118,7 @@ logic cs_in_reg;
 logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to.
 										0 is upper, 1 is lower */
+
 
 logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
 always_ff @ (posedge clk)
@@ -148,6 +151,11 @@ begin
 		palette_data_out <= 0;
 		palette_WE <= 0;
 		vblank_clear <= 0;
+		fine_x_scroll <= 0;
+		fine_y_scroll <= 0;
+		coarse_x_scroll <= 0;
+		coarse_y_scroll <= 0;
+		base_nt_addr <= 0;
 	end
 	else
 	begin
@@ -195,6 +203,7 @@ begin
 						oam_addr_out <= cpu_data_in;
 					end
 				end
+
 				OAMDATA:begin
 					if(WE)
 					begin
@@ -206,6 +215,23 @@ begin
 						cpu_data_out <= oam_data_in;
 				end
 
+				PPUSCROLL: begin
+					if(WE)
+					begin
+						if(~ppu_addr_counter)
+						begin
+							coarse_x_scroll <= cpu_data_in[7:3];
+							fine_x_scroll <= cpu_data_in[2:0];
+						end
+						else
+						begin
+							coarse_y_scroll <= cpu_data_in[7:3];
+							fine_y_scroll <= cpu_data_in [2:0];
+						end
+						ppu_addr_counter <= ~ppu_addr_counter;
+					end
+
+				end
 				PPUADDR: begin
 					if(ppu_addr_counter)
 					begin
