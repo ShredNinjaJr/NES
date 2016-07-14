@@ -10,6 +10,7 @@ module ppu_render
 	input [9:0] scanline,
 	input bg_pt_addr, spr_pt_addr,
 	input [2:0] fine_x_scroll,
+	input [14:0] temp_vram,
 	output logic spr0_hit, spr_overflow,
 	input oam_dma, show_spr,
 	input [7:0] oam_addr,

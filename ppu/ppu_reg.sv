@@ -97,8 +97,8 @@ module ppu_reg
 	input spr0_hit,		/* bit 6*/
 	input VGA_VS,	/* bit 7*/
 	input [9:0] vc,
-	output logic [2:0] fine_x_scroll, fine_y_scroll,
-	output logic [4:0] coarse_x_scroll, coarse_y_scroll
+	output logic [2:0] fine_x_scroll,
+	output logic [14:0] temp_vram
 );
 
 /* register numbers in the mem array */
@@ -119,6 +119,10 @@ logic ppu_addr_counter;		/* Counter that signifies which byte(lower or upper)
 										of the PPU address is being written to.
 										0 is upper, 1 is lower */
 
+logic [4:0] coarse_x_scroll, coarse_y_scroll;
+logic [2:0] fine_y_scroll;
+
+assign temp_vram = {fine_y_scroll, base_nt_addr, coarse_y_scroll, coarse_x_scroll};
 
 logic [4:0] lsb_last_write;	/* lsb of last byte written to a register */
 always_ff @ (posedge clk)
